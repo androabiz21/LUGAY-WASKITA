@@ -41,11 +41,14 @@ const ShareResult: React.FC<ShareResultProps> = ({ title, text, context }) => {
     } catch (err: any) {
       console.error("Error generating image:", err);
       // Simpan detail error untuk debugging
+      const errorStr = String(err);
+      const isQuotaError = errorStr.includes("429") || errorStr.toLowerCase().includes("quota");
+      
       setDebugError({
         message: err.message || "Unknown Error",
-        code: err.code || "No Code",
-        status: err.status || "No Status",
-        details: err.details || "No further details",
+        code: isQuotaError ? "429_QUOTA_LIMIT" : (err.code || "No Code"),
+        status: err.status || "FAILED",
+        isQuota: isQuotaError,
         raw: JSON.stringify(err, null, 2)
       });
       setShowDebugModal(true);
@@ -89,11 +92,11 @@ const ShareResult: React.FC<ShareResultProps> = ({ title, text, context }) => {
         </button>
       </div>
 
-      {/* MODAL DEBUG (MUNCUL JIKA GAGAL) */}
+      {/* MODAL DEBUG */}
       {showDebugModal && debugError && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-black/90 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="max-w-xl w-full bg-stone-950 border border-red-900/50 rounded-[32px] p-8 relative shadow-2xl overflow-hidden">
-             <div className="absolute top-0 left-0 w-full h-1 bg-red-600 animate-pulse" />
+             <div className={`absolute top-0 left-0 w-full h-1 ${debugError.isQuota ? 'bg-amber-500' : 'bg-red-600'} animate-pulse`} />
              
              <button 
               onClick={() => setShowDebugModal(false)}
@@ -103,15 +106,21 @@ const ShareResult: React.FC<ShareResultProps> = ({ title, text, context }) => {
             </button>
 
             <div className="space-y-6">
-              <div className="flex items-center gap-3 text-red-500">
+              <div className={`flex items-center gap-3 ${debugError.isQuota ? 'text-amber-500' : 'text-red-500'}`}>
                 <Bug size={24} />
-                <h3 className="font-heritage text-xl font-bold uppercase tracking-wider">Laporan Gangguan Sanad</h3>
+                <h3 className="font-heritage text-xl font-bold uppercase tracking-wider">
+                  {debugError.isQuota ? 'Batas Resonansi Tercapai' : 'Laporan Gangguan Sanad'}
+                </h3>
               </div>
 
-              <div className="p-4 bg-red-950/20 border border-red-900/30 rounded-2xl flex gap-3 mb-4">
-                <AlertCircle size={18} className="text-red-600 shrink-0 mt-1" />
-                <div className="text-xs text-red-300 leading-relaxed">
-                  Terjadi pemutusan resonansi pada model <strong>gemini-2.5-flash-image</strong>. Detail teknis di bawah diperlukan untuk diagnosa.
+              <div className={`p-4 ${debugError.isQuota ? 'bg-amber-950/20 border-amber-900/30 text-amber-300' : 'bg-red-950/20 border-red-900/30 text-red-300'} border rounded-2xl flex gap-3 mb-4`}>
+                <AlertCircle size={18} className="shrink-0 mt-1" />
+                <div className="text-xs leading-relaxed">
+                  {debugError.isQuota ? (
+                    <>Kunci Waskita yang Anda gunakan telah mencapai <strong>Batas Kuota (Error 429)</strong>. Mohon tunggu beberapa menit atau gunakan kunci lain yang memiliki limit lebih besar.</>
+                  ) : (
+                    <>Terjadi pemutusan resonansi pada model <strong>gemini-2.5-flash-image</strong>. Detail teknis di bawah diperlukan untuk diagnosa.</>
+                  )}
                 </div>
               </div>
 
@@ -121,8 +130,8 @@ const ShareResult: React.FC<ShareResultProps> = ({ title, text, context }) => {
                 </div>
                 <div className="p-4 max-h-64 overflow-y-auto custom-scrollbar font-mono text-[10px] text-emerald-500 whitespace-pre-wrap leading-relaxed">
                   {`ERROR_MESSAGE: ${debugError.message}\n`}
-                  {`ERROR_CODE: ${debugError.code}\n`}
-                  {`STATUS: ${debugError.status}\n`}
+                  {`DIAGNOSTIC_CODE: ${debugError.code}\n`}
+                  {`API_STATUS: ${debugError.status}\n`}
                   {`RAW_DATA:\n${debugError.raw}`}
                 </div>
               </div>
@@ -130,9 +139,17 @@ const ShareResult: React.FC<ShareResultProps> = ({ title, text, context }) => {
               <div className="space-y-2">
                  <p className="text-[10px] text-stone-500 italic">Analisa Kemungkinan:</p>
                  <ul className="text-[9px] text-stone-400 space-y-1 list-disc pl-4">
-                   <li><strong>Safety Block:</strong> Model mendeteksi konten sensitif meski prompt sudah disederhanakan.</li>
-                   <li><strong>Expired Key:</strong> Waskita Key Anda mungkin sudah mencapai batas kuota atau tidak valid.</li>
-                   <li><strong>Region Block:</strong> Layanan image generation Google belum aktif sepenuhnya di wilayah ini.</li>
+                   {debugError.isQuota ? (
+                     <>
+                        <li><strong>Free Tier Limit:</strong> Model Gemini memiliki batasan RPM (Requests Per Minute) yang ketat.</li>
+                        <li><strong>Shared Key:</strong> Pastikan kunci Anda tidak sedang digunakan oleh aplikasi lain secara bersamaan.</li>
+                     </>
+                   ) : (
+                     <>
+                        <li><strong>Safety Block:</strong> Model mendeteksi konten sensitif meski prompt sudah disederhanakan.</li>
+                        <li><strong>Invalid Key:</strong> Pastikan kunci yang Anda masukkan saat login adalah kunci API Google AI Studio yang valid.</li>
+                     </>
+                   )}
                  </ul>
               </div>
 
@@ -140,7 +157,7 @@ const ShareResult: React.FC<ShareResultProps> = ({ title, text, context }) => {
                 onClick={() => setShowDebugModal(false)}
                 className="w-full py-4 bg-stone-800 hover:bg-stone-700 text-white font-black rounded-xl transition-all uppercase tracking-widest text-[10px]"
               >
-                TUTUP LAPORAN
+                TUTUP DIAGNOSA
               </button>
             </div>
           </div>
