@@ -1,6 +1,5 @@
 
 import React, { useState } from 'react';
-// Removed HandsPraying as it is not an exported member of lucide-react and is unused in the component.
 import { Layers, Sparkles, Loader2, Star, HelpCircle, Clock, ShieldAlert, Zap, Heart, Eye, Home, X, Image as ImageIcon, User, Calendar } from 'lucide-react';
 import { getCulturalSynthesis, generateCardVisual } from '../services/gemini.ts';
 import ShareResult from '../components/ShareResult.tsx';
@@ -44,7 +43,7 @@ const SPREADS: SpreadType[] = [
 ];
 
 const CardReadingView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ onNavigate }) => {
-  const [userName, setUserName] = useState('');
+  const [userName, setUserName] = useState(localStorage.getItem('waskita_user') || '');
   const [birthDate, setBirthDate] = useState('');
   const [motherName, setMotherName] = useState('');
   const [question, setQuestion] = useState('');
@@ -56,7 +55,7 @@ const CardReadingView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ on
   const [activeCardIndex, setActiveCardIndex] = useState<number | null>(null);
 
   const drawCards = async () => {
-    if (!question.trim() || !userName.trim() || !birthDate.trim() || !motherName.trim()) { alert("Lengkapi data batin."); return; }
+    if (!question.trim() || !userName.trim() || !birthDate.trim() || !motherName.trim()) { alert("Mohon lengkapi seluruh data batin."); return; }
     setReadingStarted(true); setLoading(true); setInterpretation(''); setActiveCardIndex(null);
     const shuffled = [...WASKITA_CARDS].sort(() => 0.5 - Math.random());
     const drawn = shuffled.slice(0, 3).map(c => ({ ...c, image: null, imageLoading: true }));

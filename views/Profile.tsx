@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Shield, Award, MapPin, Landmark, History, Home, Briefcase, School } from 'lucide-react';
 import { AppView } from '../types.ts';
 
@@ -7,6 +7,11 @@ const ProfileView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ onNavi
   // Identitas Inohong Pembuat Aplikasi (Sesuai Permintaan: Jangan Dirubah)
   const creatorName = "Kang Dodi Lugay";
   
+  // Mengambil nama user yang sedang login untuk narasi
+  const activeUser = useMemo(() => {
+    return localStorage.getItem('waskita_user') || 'Sadhaka';
+  }, []);
+
   const credentials = [
     { icon: <Shield className="text-blue-600" size={18} />, label: "Guru Besar Lugay Kancana", desc: "Penerus Sanad Maenpo Purwakarta" },
     { icon: <Briefcase className="text-blue-600" size={18} />, label: "Sekretaris APN", desc: "Asosiasi Pesilat Nusantara" },
@@ -50,11 +55,13 @@ const ProfileView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ onNavi
              </div>
              <div className="p-6 md:p-16 bg-stone-900/30 border border-stone-800 rounded-[40px] italic text-stone-100 text-lg md:text-3xl leading-relaxed text-justify shadow-inner space-y-8 font-medium">
                <p>
-                 Sanad Lugay Kancana berakar pada ajaran Maenpo yang mementingkan olah rasa dan keseimbangan. <span className="text-blue-400 font-bold">{creatorName}</span> mendedikasikan aplikasi ini sebagai wadah preservasi digital 
-                 untuk kearifan lokal Tatar Pasundan agar tetap relevan di zaman serba cepat.
+                 Selamat datang, <span className="text-blue-400 font-bold">{activeUser}</span>. Anda kini terhubung ke dalam ekosistem digital 
+                 Galura Lugay Kancana. Sesuai visi <span className="text-white font-bold">{creatorName}</span>, aplikasi ini dirancang untuk membantu Anda merajut 
+                 kearifan purba Pasundan dengan kecanggihan waskita masa depan.
                </p>
                <p>
-                 Melalui gerbang ini, setiap langkah Anda diawasi oleh nilai-nilai luhur silih asah, silih asih, dan silih asuh. Teknologi ini hanyalah alat, sejatinya waskita lahir dari kejernihan hati dan ketulusan laku.
+                 Sanad Lugay Kancana berakar pada ajaran Maenpo yang mementingkan olah rasa dan keseimbangan. Melalui 
+                 gerbang ini, setiap langkah Anda diawasi oleh nilai-nilai luhur silih asah, silih asih, dan silih asuh.
                </p>
              </div>
            </section>
