@@ -1,7 +1,25 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, Upload, Loader2, Sparkles, RefreshCw, Eye, Ghost, SwitchCamera, Home, User, Flame, Zap, Calendar, Heart, Download, ScrollText, Layers, AlertCircle } from 'lucide-center'; // Fix: icon library import if needed, but assuming lucide-react as per standard
-import { Camera as CameraIcon, Upload as UploadIcon, Loader2 as LoaderIcon, Sparkles as SparklesIcon, RefreshCw as RefreshIcon, Eye as EyeIcon, Ghost as GhostIcon, SwitchCamera as SwitchIcon, Home as HomeIcon, User as UserIcon, Flame as FlameIcon, Zap as ZapIcon, Calendar as CalendarIcon, Heart as HeartIcon, Download as DownloadIcon, ScrollText as ScrollIcon, Layers as LayersIcon, AlertCircle as AlertIcon } from 'lucide-react';
+import { 
+  Camera as CameraIcon, 
+  Upload as UploadIcon, 
+  Loader2 as LoaderIcon, 
+  Sparkles as SparklesIcon, 
+  RefreshCw as RefreshIcon, 
+  Eye as EyeIcon, 
+  Ghost as GhostIcon, 
+  SwitchCamera as SwitchIcon, 
+  Home as HomeIcon, 
+  User as UserIcon, 
+  Flame as FlameIcon, 
+  Zap as ZapIcon, 
+  Calendar as CalendarIcon, 
+  Heart as HeartIcon, 
+  Download as DownloadIcon, 
+  ScrollText as ScrollIcon, 
+  Layers as LayersIcon, 
+  AlertCircle as AlertIcon 
+} from 'lucide-react';
 import { analyzeKhodam, generateKhodamVisual } from '../services/gemini.ts';
 import ShareResult from '../components/ShareResult.tsx';
 import { AppView } from '../types.ts';
@@ -112,7 +130,6 @@ const KhodamCheckView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ on
           setKhodamVisual(visualUrl);
         } else {
           console.warn("Visual generation was blocked by safety filter.");
-          // We don't throw here to keep the text analysis
         }
       } catch (visualErr) {
         console.warn("Image generation failed silently.");
@@ -206,7 +223,7 @@ const KhodamCheckView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ on
               </div>
             )}
 
-            <button onClick={handleAnalyze} disabled={!image || !name.trim() || loading} className="w-full py-6 bg-stone-100 hover:bg-white text-stone-950 font-black rounded-2xl transition-all flex items-center justify-center gap-3 shadow-2xl uppercase tracking-widest text-[11px] active:scale-95 disabled:opacity-50">
+            <button onClick={handleAnalyze} disabled={!image || !name.trim() || loading} className="w-full py-6 bg-stone-100 hover:bg-white text-stone-950 font-black rounded-2xl shadow-2xl transition-all flex items-center justify-center gap-3 shadow-2xl uppercase tracking-widest text-[11px] active:scale-95 disabled:opacity-50">
               {loading ? <LoaderIcon className="animate-spin" size={18} /> : <ZapIcon size={18} className="text-amber-600" />}
               {loading ? 'MENYELARASKAN SANAD...' : 'SINGKAP KARTU LUKISAN'}
             </button>
