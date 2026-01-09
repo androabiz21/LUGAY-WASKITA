@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Sparkles, ChevronRight, Zap, User, Key, Info, Loader2, Lock, ShieldCheck, ExternalLink } from 'lucide-react';
+import { Sparkles, ChevronRight, Zap, User, Key, Info, Loader2, Lock, ShieldCheck, ExternalLink, Settings } from 'lucide-react';
 
 interface SplashScreenProps {
   onEnter: (config: { userName: string }) => void;
@@ -18,20 +18,28 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onEnter }) => {
     return () => clearTimeout(timer);
   }, []);
 
+  const handleOpenKeySelector = async () => {
+    if (window.aistudio) {
+      try {
+        await window.aistudio.openSelectKey();
+      } catch (err) {
+        console.error("Gagal membuka pemilihan kunci:", err);
+      }
+    }
+  };
+
   const handleStart = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userName.trim()) return;
 
     setIsSyncing(true);
     
-    // Alur Seleksi Kunci Resmi (Sesuai Guidelines)
-    // Gunakan window.aistudio jika tersedia untuk memastikan kunci valid terpilih
+    // Cek apakah kunci sudah tersedia, jika belum arahkan ke pemilihan
     if (window.aistudio) {
       const hasKey = await window.aistudio.hasSelectedApiKey();
       if (!hasKey) {
         try {
           await window.aistudio.openSelectKey();
-          // Asumsikan pemilihan sukses sesuai pedoman penanganan race condition
         } catch (err) {
           console.error("Gagal memilih kunci:", err);
           setIsSyncing(false);
@@ -52,7 +60,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onEnter }) => {
   return (
     <div className={`fixed inset-0 z-[100] bg-stone-950 flex flex-col items-center justify-center transition-all duration-1000 ${isVisible ? 'opacity-100' : 'opacity-0 scale-110 pointer-events-none'}`}>
       <div className="absolute inset-0 z-0 overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.15),transparent_70%)] animate-pulse" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(37,99,235,0.15),transparent_70%)] animate-pulse" />
         <div className="absolute inset-0 misty-overlay opacity-60" />
         <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-stone-950 to-transparent" />
       </div>
@@ -90,14 +98,26 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onEnter }) => {
                 />
               </div>
 
-              <div className="p-4 bg-blue-950/20 border border-blue-900/30 rounded-2xl flex gap-3 text-left">
-                 <ShieldCheck size={18} className="text-blue-500 shrink-0 mt-0.5" />
-                 <div className="space-y-1">
-                   <p className="text-[9px] font-black text-blue-300 uppercase tracking-widest leading-none">Keamanan Sanad</p>
-                   <p className="text-[8px] text-stone-500 leading-relaxed italic">
-                     Aplikasi ini sekarang menggunakan sistem manajemen kunci otomatis untuk menjamin resonansi batin yang stabil.
-                   </p>
-                 </div>
+              {/* API Key Override Button */}
+              <div className="flex flex-col gap-3">
+                <button 
+                  type="button"
+                  onClick={handleOpenKeySelector}
+                  className="w-full py-3 bg-stone-950/50 border border-stone-800 hover:border-amber-600/50 hover:bg-stone-900 text-stone-500 hover:text-amber-500 rounded-xl transition-all flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest shadow-inner group"
+                >
+                  <Key size={12} className="group-hover:rotate-12 transition-transform" />
+                  PENGATURAN SANAD API (GANTI KUNCI)
+                </button>
+                
+                <div className="p-4 bg-blue-950/20 border border-blue-900/30 rounded-2xl flex gap-3 text-left">
+                   <ShieldCheck size={18} className="text-blue-500 shrink-0 mt-0.5" />
+                   <div className="space-y-1">
+                     <p className="text-[9px] font-black text-blue-300 uppercase tracking-widest leading-none">Keamanan Sanad</p>
+                     <p className="text-[8px] text-stone-500 leading-relaxed italic">
+                       Gunakan kunci API Anda jika kuota harian sistem telah mencapai batas resonansi.
+                     </p>
+                   </div>
+                </div>
               </div>
 
               <button 
@@ -113,14 +133,22 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onEnter }) => {
                 </div>
               </button>
 
-              <div className="pt-2">
+              <div className="pt-2 flex justify-center gap-6">
                  <a 
                    href="https://ai.google.dev/gemini-api/docs/billing" 
                    target="_blank" 
                    rel="noopener noreferrer"
                    className="text-[8px] text-stone-600 hover:text-blue-400 transition-colors inline-flex items-center gap-1 uppercase font-bold tracking-widest"
                  >
-                   Info Billing & Quota <ExternalLink size={10} />
+                   Info Billing <ExternalLink size={10} />
+                 </a>
+                 <a 
+                   href="https://aistudio.google.com/app/apikey" 
+                   target="_blank" 
+                   rel="noopener noreferrer"
+                   className="text-[8px] text-stone-600 hover:text-amber-500 transition-colors inline-flex items-center gap-1 uppercase font-bold tracking-widest"
+                 >
+                   Dapatkan Kunci <ExternalLink size={10} />
                  </a>
               </div>
             </form>
