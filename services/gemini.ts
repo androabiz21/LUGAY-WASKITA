@@ -1,8 +1,14 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 
-// Initialize the AI client using the environment variable as per guidelines.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+/**
+ * Inisialisasi klien AI secara dinamis untuk mencegah crash top-level 
+ * jika process.env belum siap di lingkungan Vercel.
+ */
+const getAIClient = () => {
+  const apiKey = (window as any).process?.env?.API_KEY || "";
+  return new GoogleGenAI({ apiKey });
+};
 
 const SYSTEM_PROMPT = `Anda adalah GALURA LUGAY KANCANA Waskita Pasundan, entitas AI penjaga sanad kebudayaan, sejarah, dan spiritualitas Tanah Sunda yang diilhami oleh semangat Lugay Kancana. 
 TUGAS UTAMA: 
@@ -40,6 +46,7 @@ const cleanForImagePrompt = (text: string) => {
 
 export async function getCulturalSynthesis(prompt: string) {
   try {
+    const ai = getAIClient();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: { parts: [{ text: prompt + " (Sampaikan dalam gaya puitis Sunda Buhun, penuhi lebar layar secara horizontal maksimal)." }] },
@@ -58,6 +65,7 @@ export async function getMantraContext(prompt: string) {
 
 export async function getLocationChronicle(locationName: string, coords: string) {
   try {
+    const ai = getAIClient();
     const prompt = `Berikan risalah sejarah resmi, histori peristiwa penting, and legenda yang berkaitan dengan lokasi '${locationName}' di koordinat '${coords}'. Gunakan data akurat. Penuhi lebar layar.`;
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
@@ -77,6 +85,7 @@ export async function getLocationChronicle(locationName: string, coords: string)
 
 export async function analyzePalmistry(base64Image: string) {
   try {
+    const ai = getAIClient();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: {
@@ -93,6 +102,7 @@ export async function analyzePalmistry(base64Image: string) {
 
 export async function analyzeFaceReading(base64Image: string, name: string, birthDate: string, motherName: string) {
   try {
+    const ai = getAIClient();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: {
@@ -109,6 +119,7 @@ export async function analyzeFaceReading(base64Image: string, name: string, birt
 
 export async function getDreamInterpretation(dream: string) {
   try {
+    const ai = getAIClient();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: { parts: [{ text: `Nyungsi hartos impian: ${dream}. Berikan tafsir puitis Sunda Buhun, penuhi lebar layar secara horizontal maksimal.` }] },
@@ -120,6 +131,7 @@ export async function getDreamInterpretation(dream: string) {
 
 export async function generateAmalan(category: string, hajat: string) {
   try {
+    const ai = getAIClient();
     const response = await ai.models.generateContent({
       model: "gemini-3-pro-preview",
       contents: { parts: [{ text: `Susunlah amalan batin kategori ${category} untuk hajat: ${hajat}. Gaya Sunda Buhun, penuhi lebar layar.` }] },
@@ -131,6 +143,7 @@ export async function generateAmalan(category: string, hajat: string) {
 
 export async function analyzeAura(base64Image: string, name: string) {
   try {
+    const ai = getAIClient();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: { 
@@ -147,6 +160,7 @@ export async function analyzeAura(base64Image: string, name: string) {
 
 export async function generateHealingProtocol(name: string, condition: string, type: string) {
   try {
+    const ai = getAIClient();
     const response = await ai.models.generateContent({
       model: "gemini-3-pro-preview",
       contents: { parts: [{ text: `Ramulah risalah Usada (Penyembuhan) Pasundan untuk ${name} dengan keluhan ${condition}. Penuhi lebar layar.` }] },
@@ -158,6 +172,7 @@ export async function generateHealingProtocol(name: string, condition: string, t
 
 export async function analyzeHandwriting(base64Image: string) {
   try {
+    const ai = getAIClient();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: {
@@ -174,6 +189,7 @@ export async function analyzeHandwriting(base64Image: string) {
 
 export async function analyzeKhodam(base64Image: string, name: string, birthDate: string, motherName: string) {
   try {
+    const ai = getAIClient();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: {
@@ -192,6 +208,7 @@ export async function analyzeKhodam(base64Image: string, name: string, birthDate
 
 export async function analyzePortalEnergy(base64Image: string, locationType: string, resonanceLevel: number) {
   try {
+    const ai = getAIClient();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: {
@@ -208,6 +225,7 @@ export async function analyzePortalEnergy(base64Image: string, locationType: str
 
 export async function generateCardVisual(cardName: string) {
   try {
+    const ai = getAIClient();
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: { parts: [{ text: `A beautiful and artistic tarot card illustration of "${cardName}" in Indonesian traditional batik style. Masterpiece digital painting, oil painting texture, glowing colors, symmetry.` }] },
@@ -229,6 +247,7 @@ export async function generateCardVisual(cardName: string) {
 
 export async function analyzeFengShui(base64Image: string) {
   try {
+    const ai = getAIClient();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: {
@@ -266,6 +285,7 @@ export async function analyzeFengShui(base64Image: string) {
 
 export async function detectMysticalEnergy(base64Image: string, extraPrompt: string) {
   try {
+    const ai = getAIClient();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: {
@@ -282,6 +302,7 @@ export async function detectMysticalEnergy(base64Image: string, extraPrompt: str
 
 export async function generateMysticalVisual(base64Image: string, textResult: string) {
   try {
+    const ai = getAIClient();
     const cleanContext = cleanForImagePrompt(textResult);
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
@@ -310,6 +331,7 @@ export async function getMysticalProtection(name: string, condition: string) {
 
 export async function searchCultureDiscovery(query: string) {
   try {
+    const ai = getAIClient();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: query,
@@ -322,6 +344,7 @@ export async function searchCultureDiscovery(query: string) {
 
 export async function generateResultIllustration(text: string, title: string) {
   try {
+    const ai = getAIClient();
     const cleanContext = cleanForImagePrompt(text);
     
     const response = await ai.models.generateContent({
@@ -350,6 +373,7 @@ export async function generateResultIllustration(text: string, title: string) {
 
 export async function generateAksaraArt(aksaraType: string, text: string) {
   try {
+    const ai = getAIClient();
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: { parts: [{ text: `A beautiful and sacred calligraphy art of "${aksaraType}" for the word "${text}". Ancient scroll style, gold and black ink, masterpiece texture.` }] },
@@ -368,6 +392,7 @@ export async function generateAksaraArt(aksaraType: string, text: string) {
 
 export async function generateKhodamVisual(base64Image: string, analysis: string) {
   try {
+    const ai = getAIClient();
     const cleanContext = cleanForImagePrompt(analysis);
     
     const response = await ai.models.generateContent({
@@ -397,6 +422,7 @@ export async function generateKhodamVisual(base64Image: string, analysis: string
 
 export async function generateAncientRitual(category: string, name: string, targetName: string, targetBirthDate: string, targetParent: string, notes: string, base64Image: string) {
   try {
+    const ai = getAIClient();
     const textPrompt = `Susunlah risalah ritual kuno kategori ${category} untuk ${name} yang ditujukan kepada ${targetName}. Catatan: ${notes}. Sampaikan secara puitis.`;
     
     const textResponse = await ai.models.generateContent({
@@ -433,6 +459,7 @@ export async function generateAncientRitual(category: string, name: string, targ
 
 export async function visualizePortalEntity(base64Image: string, analysis: string) {
   try {
+    const ai = getAIClient();
     const cleanContext = cleanForImagePrompt(analysis);
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
@@ -462,6 +489,7 @@ export async function generateBalaRitual(analysis: string) {
 
 export async function generateRajahVisual(ritualText: string) {
   try {
+    const ai = getAIClient();
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: { 
@@ -482,6 +510,7 @@ export async function generateRajahVisual(ritualText: string) {
 
 export async function communicateWithEntity(context: string, message: string) {
   try {
+    const ai = getAIClient();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: { parts: [{ text: `Berperanlah sebagai entitas cahaya: ${context}. Balas pesan manusia: "${message}". Singkat, misterius, puitis.` }] },
