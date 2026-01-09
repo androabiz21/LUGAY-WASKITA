@@ -2,11 +2,21 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
 /**
- * Mendapatkan instance AI secara eksklusif menggunakan process.env.API_KEY.
- * Variabel ini diperbarui oleh SplashScreen saat user login.
+ * Mendapatkan instance AI.
+ * Memprioritaskan Waskita Key yang diinput user melalui layar login (localStorage).
+ * Dipanggil setiap kali akan melakukan request agar kunci selalu sinkron.
  */
 const getAIClient = () => {
-  const apiKey = process.env.API_KEY || "";
+  const loginKey = localStorage.getItem('waskita_key');
+  const envKey = (window as any).process?.env?.API_KEY || "";
+  
+  // Gunakan kunci dari login jika ada, jika tidak gunakan env
+  const apiKey = (loginKey && loginKey.trim() !== "") ? loginKey.trim() : envKey;
+  
+  if (!apiKey) {
+    console.warn("Waskita Key (API KEY) tidak ditemukan. Sila login kembali.");
+  }
+  
   return new GoogleGenAI({ apiKey });
 };
 
@@ -35,7 +45,6 @@ const sanitizeText = (text: string | undefined) => {
  * Mengubah narasi nasib menjadi konsep visual artistik yang aman dari filter sensor.
  */
 const cleanForImagePrompt = (text: string) => {
-  // Kata-kata yang sering memicu Error 400 (Safety Filter)
   const riskyWords = [
     /khodam/gi, /hantu/gi, /setan/gi, /iblis/gi, /jin/gi, /demon/gi, /ghost/gi, 
     /spirit/gi, /magic/gi, /mistik/gi, /gaib/gi, /blood/gi, /dark/gi, /horror/gi, 
@@ -46,15 +55,11 @@ const cleanForImagePrompt = (text: string) => {
   let cleaned = text;
   riskyWords.forEach(regex => { cleaned = cleaned.replace(regex, 'cosmic flow'); });
   
-  // Ambil intisari untuk dijadikan tema lukisan
   const simpleContext = cleaned.split(/\s+/).slice(0, 15).join(' ');
   
   return `A majestic artistic digital painting of a sacred landscape inspired by ${simpleContext}. Featuring radiant golden glowing lines, traditional Indonesian batik mega mendung patterns in the sky, ethereal warm lighting, celestial atmosphere, peaceful spiritual aesthetic, high-quality masterpiece art, vivid colors. No human figures or scary elements.`;
 };
 
-/**
- * Ekstraksi gambar dari response kandidat secara aman.
- */
 const extractImageUrl = (response: any) => {
   try {
     const candidate = response.candidates?.[0];
@@ -233,7 +238,7 @@ export async function generateKhodamVisual(base64Image: string, analysis: string
     contents: {
       parts: [
         { inlineData: { data: base64Image, mimeType: 'image/jpeg' } },
-        { text: "Add a majestic glowing golden aura and intricate traditional Indonesian batik motifs. Style: Ethereal oil painting, warm lighting, masterpiece quality." }
+        { text: "Add a majestic glowing golden aura and intricate traditional Indonesian batik motifs. Style: Ethereal oil painting, warm lighting, masterpiece quality. Serene atmosphere." }
       ]
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
