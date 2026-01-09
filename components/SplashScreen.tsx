@@ -26,10 +26,12 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onEnter }) => {
     localStorage.setItem('waskita_user', userName.trim());
     localStorage.setItem('waskita_key', trimmedKey);
     
-    // Pastikan process.env.API_KEY di-host secara global agar SDK Gemini bisa membacanya
+    // Injeksi paksa ke process.env global agar dibaca oleh SDK
     if (!(window as any).process) (window as any).process = { env: {} };
-    if (!(window as any).process.env) (window as any).process.env = {};
     (window as any).process.env.API_KEY = trimmedKey;
+    
+    // Memanggil fungsi sinkronisasi dari index.html jika tersedia
+    if ((window as any).syncWaskitaKey) (window as any).syncWaskitaKey();
     
     setIsWelcoming(true);
 

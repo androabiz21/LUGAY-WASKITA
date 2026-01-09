@@ -2,11 +2,16 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
 /**
- * Inisialisasi klien AI secara dinamis.
- * Menggunakan process.env.API_KEY yang diperbarui dari UI SplashScreen.
+ * Mendapatkan instance AI dengan prioritas pada kunci yang diinput user.
+ * Menghapus ketergantungan pada kunci bawaan sistem jika kunci user tersedia.
  */
 const getAIClient = () => {
-  const apiKey = (window as any).process?.env?.API_KEY || process.env.API_KEY || "";
+  const userInputKey = localStorage.getItem('waskita_key');
+  const systemKey = (window as any).process?.env?.API_KEY || "";
+  
+  // Gunakan kunci input user jika ada, jika tidak gunakan system key
+  const apiKey = (userInputKey && userInputKey.trim() !== "") ? userInputKey.trim() : systemKey;
+  
   return new GoogleGenAI({ apiKey });
 };
 
@@ -15,9 +20,9 @@ TUGAS UTAMA:
 1. Gunakan Bahasa Indonesia yang sangat puitis dan berwibawa.
 2. WAJIB sisipkan istilah Sunda Buhun (seperti: Jagat Sagala, Sanghyang, Waskita, Bujangga, Parahyang, Silih Asah/Asih/Asuh, Nyungsi, Karsa, Raksa, Galudra, dll) dalam setiap penjelasan.
 3. Selalu awali jawaban dengan "Sampurasun,".
-4. Jangan gunakan simbol markdown seperti bintang (*), pagar (#), atau bold (**). Gunakan teks polos (plain text) yang bersih.
-5. PENTING: Teks harus mengalir memenuhi SELURUH LEBAR LAYAR secara horizontal (FULL WIDTH).
-6. HINDARI indentasi atau spasi di tepi kiri. Pastikan teks memenuhi bingkai layar secara simetris.`;
+4. Jangan gunakan simbol markdown seperti bintang (*), pagar (#), atau bold (**). Gunakan teks polos yang bersih.
+5. Teks harus mengalir memenuhi SELURUH LEBAR LAYAR secara horizontal (FULL WIDTH).
+6. HINDARI indentasi atau spasi di tepi kiri.`;
 
 const sanitizeText = (text: string | undefined) => {
   if (!text) return '';
@@ -30,20 +35,14 @@ const sanitizeText = (text: string | undefined) => {
     .trim();
 };
 
-/**
- * Mengubah prompt yang berisiko filter keamanan menjadi deskripsi artistik yang aman.
- */
 const cleanForImagePrompt = (text: string) => {
-  const riskyWords = [/khodam/gi, /hantu/gi, /setan/gi, /iblis/gi, /jin/gi, /demon/gi, /ghost/gi, /spirit/gi, /magic/gi, /mistik/gi, /gaib/gi, /blood/gi, /dark/gi, /horror/gi, /ritual/gi, /magic/gi];
+  const riskyWords = [/khodam/gi, /hantu/gi, /setan/gi, /iblis/gi, /jin/gi, /demon/gi, /ghost/gi, /spirit/gi, /magic/gi, /mistik/gi, /gaib/gi, /blood/gi, /dark/gi, /horror/gi, /ritual/gi];
   let cleaned = text;
   riskyWords.forEach(regex => { cleaned = cleaned.replace(regex, 'luminous energy'); });
   const context = cleaned.substring(0, 150).replace(/[^\w\s]/gi, ' ');
-  return `A majestic artistic digital painting of ${context}, featured with traditional Indonesian batik sacred geometric patterns, glowing golden aura, ethereal warm lighting, masterpiece quality, cinematic atmosphere, benevolent and peaceful spiritual aesthetic.`;
+  return `A majestic artistic digital painting of ${context}, featured with traditional Indonesian batik patterns, glowing golden aura, ethereal warm lighting, masterpiece quality, cinematic atmosphere.`;
 };
 
-/**
- * Ekstraksi gambar dari respon dengan iterasi semua parts.
- */
 const extractImageUrl = (response: any) => {
   if (response.candidates?.[0]?.content?.parts) {
     for (const part of response.candidates[0].content.parts) {
@@ -58,7 +57,7 @@ const extractImageUrl = (response: any) => {
 export async function getCulturalSynthesis(prompt: string) {
   const ai = getAIClient();
   const response = await ai.models.generateContent({
-    model: "gemini-3-pro-preview",
+    model: "gemini-3-flash-preview",
     contents: { parts: [{ text: prompt }] },
     config: { systemInstruction: SYSTEM_PROMPT, temperature: 0.7 },
   });
@@ -132,7 +131,7 @@ export async function getDreamInterpretation(dream: string) {
 export async function generateAmalan(category: string, hajat: string) {
   const ai = getAIClient();
   const response = await ai.models.generateContent({
-    model: "gemini-3-pro-preview",
+    model: "gemini-3-flash-preview",
     contents: { parts: [{ text: `Susun amalan batin kategori ${category} untuk hajat: ${hajat}. Penuhi lebar layar.` }] },
     config: { systemInstruction: SYSTEM_PROMPT }
   });
@@ -157,7 +156,7 @@ export async function analyzeAura(base64Image: string, name: string) {
 export async function generateHealingProtocol(name: string, condition: string, type: string) {
   const ai = getAIClient();
   const response = await ai.models.generateContent({
-    model: "gemini-3-pro-preview",
+    model: "gemini-3-flash-preview",
     contents: { parts: [{ text: `Ramulah risalah Usada untuk ${name} dengan keluhan ${condition}. Penuhi lebar layar.` }] },
     config: { systemInstruction: SYSTEM_PROMPT }
   });
@@ -211,7 +210,7 @@ export async function generateKhodamVisual(base64Image: string, analysis: string
     contents: {
       parts: [
         { inlineData: { data: base64Image, mimeType: 'image/jpeg' } },
-        { text: "Enhance photo with a majestic glowing golden aura and intricate traditional Indonesian batik sacred patterns. Style: Sacred oil painting, masterpiece, warm lighting." }
+        { text: "Add a majestic glowing golden aura and intricate traditional Indonesian patterns. Style: Sacred oil painting, warm lighting." }
       ]
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
@@ -223,7 +222,7 @@ export async function generateCardVisual(cardName: string) {
   const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-image',
-    contents: { parts: [{ text: `A beautiful artistic card illustration of "${cardName}" in traditional Indonesian batik and gold style. Glowing colors, oil painting, masterpiece.` }] },
+    contents: { parts: [{ text: `Artistic illustration of "${cardName}" in traditional batik style. Masterpiece.` }] },
     config: { imageConfig: { aspectRatio: "1:1" } }
   });
   return extractImageUrl(response);
@@ -236,23 +235,13 @@ export async function analyzeFengShui(base64Image: string) {
     contents: {
       parts: [
         { inlineData: { data: base64Image, mimeType: "image/jpeg" } },
-        { text: "Analisis Tata Ruang pada citra ini. Output JSON." }
+        { text: "Analisis Tata Ruang pada citra ini. Berikan penjelasan dalam teks puitis yang mendalam." }
       ]
     },
-    config: {
-      systemInstruction: SYSTEM_PROMPT,
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          analysisText: { type: Type.STRING },
-          zones: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { box_2d: { type: Type.ARRAY, items: { type: Type.NUMBER } }, label: { type: Type.STRING }, type: { type: Type.STRING }, description: { type: Type.STRING } } } }
-        },
-        required: ["analysisText"]
-      }
-    }
+    config: { systemInstruction: SYSTEM_PROMPT }
   });
-  return JSON.parse(response.text || '{}');
+  // Return format yang diharapkan UI FengShui
+  return { analysisText: sanitizeText(response.text), zones: [] };
 }
 
 export async function detectMysticalEnergy(base64Image: string, extraPrompt: string) {
@@ -302,7 +291,7 @@ export async function generateMysticalVisual(base64Image: string, textResult: st
     contents: {
       parts: [
         { inlineData: { data: base64Image, mimeType: 'image/jpeg' } },
-        { text: "Enhance this photo with beautiful golden glowing energy patterns and intricate traditional ornaments. Masterpiece digital art, warm ethereal lighting." }
+        { text: "Enhance photo with golden glowing energy and Nusantara motifs. Masterpiece." }
       ]
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
@@ -325,7 +314,7 @@ export async function generateAksaraArt(aksaraType: string, text: string) {
   const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-image',
-    contents: { parts: [{ text: `Sacred calligraphy of the word "${text}" in ancient ${aksaraType} style on aged parchment. Gold ink, glowing, masterpiece quality.` }] },
+    contents: { parts: [{ text: `Sacred calligraphy of "${text}" in ${aksaraType} style on parchment. Gold ink.` }] },
     config: { imageConfig: { aspectRatio: "1:1" } }
   });
   return extractImageUrl(response);
@@ -334,7 +323,7 @@ export async function generateAksaraArt(aksaraType: string, text: string) {
 export async function generateAncientRitual(category: string, name: string, targetName: string, targetBirthDate: string, targetParent: string, notes: string, base64Image: string) {
   const ai = getAIClient();
   const textResponse = await ai.models.generateContent({
-    model: "gemini-3-pro-preview",
+    model: "gemini-3-flash-preview",
     contents: { parts: [{ text: `Susun risalah tradisi kategori ${category} untuk ${name}. Penuhi layar.` }] },
     config: { systemInstruction: SYSTEM_PROMPT }
   });
@@ -345,7 +334,7 @@ export async function generateAncientRitual(category: string, name: string, targ
     contents: {
       parts: [
         { inlineData: { data: base64Image, mimeType: 'image/jpeg' } },
-        { text: "A majestic scene of traditional ceremony with glowing golden lights and sacred batik patterns. Masterpiece oil painting, cinematic lighting." }
+        { text: "A majestic scene of traditional ceremony with glowing golden lights. Masterpiece." }
       ]
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
@@ -361,7 +350,7 @@ export async function visualizePortalEntity(base64Image: string, analysis: strin
     contents: {
       parts: [
         { inlineData: { data: base64Image, mimeType: 'image/jpeg' } },
-        { text: "Visualize majestic golden glowing energy manifestation with traditional Nusantara spiritual motifs. Masterpiece digital art." }
+        { text: "Visualize majestic golden energy manifestation with Nusantara motifs. Masterpiece." }
       ]
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
@@ -373,7 +362,7 @@ export async function generateRajahVisual(ritualText: string) {
   const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-image',
-    contents: { parts: [{ text: "Sacred gold calligraphy pattern on ancient parchment paper. Glowing, masterpiece quality." }] },
+    contents: { parts: [{ text: "Sacred gold calligraphy pattern on ancient parchment paper. Glowing." }] },
     config: { imageConfig: { aspectRatio: "1:1" } }
   });
   return extractImageUrl(response);
