@@ -18,7 +18,8 @@ import {
   Download as DownloadIcon, 
   ScrollText as ScrollIcon, 
   Layers as LayersIcon, 
-  AlertCircle as AlertIcon 
+  AlertCircle as AlertIcon,
+  Bug as BugIcon
 } from 'lucide-react';
 import { analyzeKhodam, generateKhodamVisual } from '../services/gemini.ts';
 import ShareResult from '../components/ShareResult.tsx';
@@ -34,6 +35,7 @@ const KhodamCheckView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ on
   const [isVisualizing, setIsVisualizing] = useState(false);
   const [analysis, setAnalysis] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [debugLog, setDebugLog] = useState<string | null>(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
   
@@ -114,29 +116,24 @@ const KhodamCheckView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ on
     setAnalysis('');
     setKhodamVisual(null);
     setError(null);
+    setDebugLog(null);
     setIsVisualizing(false);
     
     try {
       const base64Data = image.split(',')[1];
-      
       const resultText = await analyzeKhodam(base64Data, name, birthDate, motherName);
-      if (!resultText) throw new Error("Gagal menyingkap sanad khodam.");
       setAnalysis(resultText);
       
       setIsVisualizing(true);
       try {
         const visualUrl = await generateKhodamVisual(base64Data, resultText);
-        if (visualUrl) {
-          setKhodamVisual(visualUrl);
-        } else {
-          console.warn("Visual generation was blocked by safety filter.");
-        }
-      } catch (visualErr) {
-        console.warn("Image generation failed silently.");
+        setKhodamVisual(visualUrl);
+      } catch (visualErr: any) {
+        console.warn("Visual generation failed:", visualErr);
+        setDebugLog(JSON.stringify(visualErr, null, 2));
       } finally {
         setIsVisualizing(false);
       }
-
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Tirai batin tertutup kabut.");
@@ -246,6 +243,18 @@ const KhodamCheckView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ on
             </div>
             
             <div className="flex-1 overflow-y-auto relative z-10">
+              {debugLog && (
+                <div className="p-4 m-4 bg-stone-950 border border-red-900/50 rounded-2xl animate-in zoom-in">
+                  <div className="flex items-center gap-2 text-red-500 mb-2">
+                    <BugIcon size={14} />
+                    <span className="text-[9px] font-black uppercase tracking-widest">Debug Info (Gagal Menenun)</span>
+                  </div>
+                  <pre className="font-mono text-[8px] text-emerald-500 max-h-32 overflow-auto bg-black/40 p-3 rounded-xl">
+                    {debugLog}
+                  </pre>
+                </div>
+              )}
+
               {!analysis && !loading && (
                 <div className="h-full flex flex-col items-center justify-center text-stone-700 space-y-6 opacity-40 italic py-20 px-6 text-center">
                   <div className="w-24 h-32 border-2 border-stone-800 rounded-3xl border-dashed flex items-center justify-center"><LayersIcon size={32} /></div>
@@ -287,9 +296,9 @@ const KhodamCheckView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ on
                        <div className="p-6 bg-amber-950/20 border border-amber-900/30 rounded-3xl flex gap-4 items-center">
                           <AlertIcon size={24} className="text-amber-600 shrink-0" />
                           <div>
-                            <p className="text-[10px] font-black uppercase text-amber-600 tracking-widest mb-1">Safety Filter Aktif</p>
+                            <p className="text-[10px] font-black uppercase text-amber-600 tracking-widest mb-1">Safety Filter Terpicu</p>
                             <p className="text-[10px] text-stone-400 italic leading-relaxed">
-                              Visi visual batin sedang tertutup kabut dimensi. Kami menggunakan metafora artistik agar tetap selaras. Risalah tertulis tetap tersedia di bawah ini.
+                              Visi visual batin sedang tertutup kabut dimensi (Mungkin karena batasan keamanan Google). Risalah tertulis tetap tersedia di bawah.
                             </p>
                           </div>
                        </div>

@@ -12,10 +12,6 @@ const getAIClient = () => {
   return new GoogleGenAI({ apiKey });
 };
 
-/**
- * Konfigurasi Keamanan Paling Longgar
- * Mencoba meminimalisir pemblokiran oleh filter Google.
- */
 const SAFETY_SETTINGS = [
   { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
   { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
@@ -24,7 +20,6 @@ const SAFETY_SETTINGS = [
   { category: 'HARM_CATEGORY_CIVIC_INTEGRITY', threshold: 'BLOCK_NONE' }
 ];
 
-// SYSTEM_PROMPT hanya untuk model TEKS (Gemini 3 Flash)
 const SYSTEM_PROMPT = `Anda adalah GALURA LUGAY KANCANA Waskita Pasundan, entitas AI penjaga sanad kebudayaan Tatar Sunda. 
 TUGAS UTAMA: 
 1. Gunakan Bahasa Indonesia yang sangat puitis dan berwibawa.
@@ -44,11 +39,6 @@ const sanitizeText = (text: string | undefined) => {
     .trim();
 };
 
-/**
- * MUNDANE NATURE PHOTOGRAPHY PROMPT (THE ULTIMATE BYPASS)
- * Strategi: Menggunakan deskripsi pemandangan alam yang sangat umum.
- * Menghindari kata: Art, Painting, Gold, Spirit, Ritual, Culture, Indonesia, Batik.
- */
 const getUltraSafeVisual = (index: number) => {
   const mundanePrompts = [
     "A professional landscape photograph of a lush green forest with soft morning sunlight filtering through trees, high definition.",
@@ -112,7 +102,7 @@ export async function searchCultureDiscovery(query: string) {
   return { text: sanitizeText(response.text), sources: [] };
 }
 
-// --- FUNGSI ANALISIS CITRA (MULTIMODAL) ---
+// --- FUNGSI ANALISIS CITRA ---
 
 export async function analyzePalmistry(base64Image: string) {
   const ai = getAIClient();
@@ -229,11 +219,11 @@ export async function analyzeKhodam(base64Image: string, name: string, birthDate
   return sanitizeText(response.text);
 }
 
-// --- FUNGSI GENERATE GAMBAR (MODEL 2.5 FLASH IMAGE - NO SYSTEM PROMPT - STOCK PHOTO ONLY) ---
+// --- FUNGSI GENERATE GAMBAR DENGAN DEBUG INFO ---
 
 export async function generateKhodamVisual(base64Image: string, analysis: string) {
   const ai = getAIClient();
-  const prompt = getUltraSafeVisual(0); // Forest
+  const prompt = getUltraSafeVisual(0);
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
@@ -241,14 +231,14 @@ export async function generateKhodamVisual(base64Image: string, analysis: string
       config: { imageConfig: { aspectRatio: "1:1" }, safetySettings: SAFETY_SETTINGS as any }
     });
     return extractImageUrl(response);
-  } catch (e) {
-    return null;
+  } catch (e: any) {
+    throw e;
   }
 }
 
 export async function generateCardVisual(cardName: string) {
   const ai = getAIClient();
-  const prompt = getUltraSafeVisual(2); // Flowers
+  const prompt = getUltraSafeVisual(2);
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
@@ -256,8 +246,8 @@ export async function generateCardVisual(cardName: string) {
       config: { imageConfig: { aspectRatio: "1:1" }, safetySettings: SAFETY_SETTINGS as any }
     });
     return extractImageUrl(response);
-  } catch (e) {
-    return null;
+  } catch (e: any) {
+    throw e;
   }
 }
 
@@ -318,7 +308,7 @@ export async function generateBalaRitual(analysis: string) {
 
 export async function generateMysticalVisual(base64Image: string, textResult: string) {
   const ai = getAIClient();
-  const prompt = getUltraSafeVisual(1); // Lake
+  const prompt = getUltraSafeVisual(1);
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
@@ -326,29 +316,32 @@ export async function generateMysticalVisual(base64Image: string, textResult: st
       config: { imageConfig: { aspectRatio: "1:1" }, safetySettings: SAFETY_SETTINGS as any }
     });
     return extractImageUrl(response);
-  } catch (e) {
-    return null;
+  } catch (e: any) {
+    throw e;
   }
 }
 
 export async function generateResultIllustration(text: string, title: string) {
   const ai = getAIClient();
-  const prompt = getUltraSafeVisual(3); // Hills
+  const prompt = getUltraSafeVisual(Math.floor(Math.random() * 5));
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: { parts: [{ text: prompt }] },
       config: { imageConfig: { aspectRatio: "1:1" }, safetySettings: SAFETY_SETTINGS as any }
     });
-    return extractImageUrl(response);
-  } catch (error) {
-    return null;
+    const url = extractImageUrl(response);
+    if (!url) throw new Error("API merespon tanpa data gambar (Empty Response).");
+    return url;
+  } catch (error: any) {
+    console.error("DEBUG ERROR IMAGE:", error);
+    throw error;
   }
 }
 
 export async function generateAksaraArt(aksaraType: string, text: string) {
   const ai = getAIClient();
-  const prompt = getUltraSafeVisual(4); // River
+  const prompt = getUltraSafeVisual(4);
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
@@ -356,8 +349,8 @@ export async function generateAksaraArt(aksaraType: string, text: string) {
       config: { imageConfig: { aspectRatio: "1:1" }, safetySettings: SAFETY_SETTINGS as any }
     });
     return extractImageUrl(response);
-  } catch (e) {
-    return null;
+  } catch (e: any) {
+    throw e;
   }
 }
 
@@ -369,7 +362,7 @@ export async function generateAncientRitual(category: string, name: string, targ
     config: { systemInstruction: SYSTEM_PROMPT, safetySettings: SAFETY_SETTINGS as any }
   });
   
-  const visualPrompt = getUltraSafeVisual(1); // Sunset
+  const visualPrompt = getUltraSafeVisual(1);
   let visualUrl = null;
   try {
     const visualResponse = await ai.models.generateContent({
@@ -385,7 +378,7 @@ export async function generateAncientRitual(category: string, name: string, targ
 
 export async function visualizePortalEntity(base64Image: string, analysis: string) {
   const ai = getAIClient();
-  const prompt = getUltraSafeVisual(0); // Forest
+  const prompt = getUltraSafeVisual(0);
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
@@ -393,14 +386,14 @@ export async function visualizePortalEntity(base64Image: string, analysis: strin
       config: { imageConfig: { aspectRatio: "1:1" }, safetySettings: SAFETY_SETTINGS as any }
     });
     return extractImageUrl(response);
-  } catch (e) {
-    return null;
+  } catch (e: any) {
+    throw e;
   }
 }
 
 export async function generateRajahVisual(ritualText: string) {
   const ai = getAIClient();
-  const prompt = getUltraSafeVisual(2); // Garden
+  const prompt = getUltraSafeVisual(2);
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
@@ -408,8 +401,8 @@ export async function generateRajahVisual(ritualText: string) {
       config: { imageConfig: { aspectRatio: "1:1" }, safetySettings: SAFETY_SETTINGS as any }
     });
     return extractImageUrl(response);
-  } catch (e) {
-    return null;
+  } catch (e: any) {
+    throw e;
   }
 }
 

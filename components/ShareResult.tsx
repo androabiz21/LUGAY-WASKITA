@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Share2, Copy, Image as ImageIcon, Download, Check, Loader2, Sparkles, X, AlertCircle } from 'lucide-react';
+import { Share2, Copy, Image as ImageIcon, Download, Check, Loader2, Sparkles, X, AlertCircle, Bug, Terminal } from 'lucide-react';
 import { generateResultIllustration } from '../services/gemini.ts';
 
 interface ShareResultProps {
@@ -14,6 +14,10 @@ const ShareResult: React.FC<ShareResultProps> = ({ title, text, context }) => {
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [showImageModal, setShowImageModal] = useState(false);
+  
+  // Debug States
+  const [debugError, setDebugError] = useState<any>(null);
+  const [showDebugModal, setShowDebugModal] = useState(false);
 
   const handleCopy = async () => {
     const fullText = `[${title}]\n${context ? `Konteks: ${context}\n\n` : ''}${text}\n\n-- Dibagikan dari Gerbang Waskita Nusantara --`;
@@ -27,19 +31,24 @@ const ShareResult: React.FC<ShareResultProps> = ({ title, text, context }) => {
   };
 
   const handleGenerateIllustration = async () => {
-    setGeneratedImageUrl(null); // Bersihkan gambar lama
+    setGeneratedImageUrl(null);
+    setDebugError(null);
     setIsGeneratingImage(true);
     try {
       const url = await generateResultIllustration(text, title);
-      if (url) {
-        setGeneratedImageUrl(url);
-        setShowImageModal(true);
-      } else {
-        alert("Gagal menenun ilustrasi batin. Kemungkinan tabir dimensi sedang tertutup (Safety Filter) atau frekuensi terputus. Sila coba kembali dengan teks yang berbeda.");
-      }
-    } catch (err) {
+      setGeneratedImageUrl(url);
+      setShowImageModal(true);
+    } catch (err: any) {
       console.error("Error generating image:", err);
-      alert("Terjadi kesalahan pada frekuensi jagat digital. Sila periksa koneksi Anda dan coba lagi.");
+      // Simpan detail error untuk debugging
+      setDebugError({
+        message: err.message || "Unknown Error",
+        code: err.code || "No Code",
+        status: err.status || "No Status",
+        details: err.details || "No further details",
+        raw: JSON.stringify(err, null, 2)
+      });
+      setShowDebugModal(true);
     } finally {
       setIsGeneratingImage(false);
     }
@@ -79,6 +88,64 @@ const ShareResult: React.FC<ShareResultProps> = ({ title, text, context }) => {
           {isGeneratingImage ? 'Menenun...' : 'Ilustrasi AI'}
         </button>
       </div>
+
+      {/* MODAL DEBUG (MUNCUL JIKA GAGAL) */}
+      {showDebugModal && debugError && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-black/90 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="max-w-xl w-full bg-stone-950 border border-red-900/50 rounded-[32px] p-8 relative shadow-2xl overflow-hidden">
+             <div className="absolute top-0 left-0 w-full h-1 bg-red-600 animate-pulse" />
+             
+             <button 
+              onClick={() => setShowDebugModal(false)}
+              className="absolute top-6 right-6 p-2 text-stone-600 hover:text-white transition-colors"
+            >
+              <X size={24} />
+            </button>
+
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 text-red-500">
+                <Bug size={24} />
+                <h3 className="font-heritage text-xl font-bold uppercase tracking-wider">Laporan Gangguan Sanad</h3>
+              </div>
+
+              <div className="p-4 bg-red-950/20 border border-red-900/30 rounded-2xl flex gap-3 mb-4">
+                <AlertCircle size={18} className="text-red-600 shrink-0 mt-1" />
+                <div className="text-xs text-red-300 leading-relaxed">
+                  Terjadi pemutusan resonansi pada model <strong>gemini-2.5-flash-image</strong>. Detail teknis di bawah diperlukan untuk diagnosa.
+                </div>
+              </div>
+
+              <div className="bg-stone-900 rounded-2xl border border-stone-800 overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-2 bg-stone-800 text-stone-400 text-[9px] font-black uppercase tracking-widest border-b border-stone-700">
+                  <Terminal size={12} /> Debug Log Output
+                </div>
+                <div className="p-4 max-h-64 overflow-y-auto custom-scrollbar font-mono text-[10px] text-emerald-500 whitespace-pre-wrap leading-relaxed">
+                  {`ERROR_MESSAGE: ${debugError.message}\n`}
+                  {`ERROR_CODE: ${debugError.code}\n`}
+                  {`STATUS: ${debugError.status}\n`}
+                  {`RAW_DATA:\n${debugError.raw}`}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                 <p className="text-[10px] text-stone-500 italic">Analisa Kemungkinan:</p>
+                 <ul className="text-[9px] text-stone-400 space-y-1 list-disc pl-4">
+                   <li><strong>Safety Block:</strong> Model mendeteksi konten sensitif meski prompt sudah disederhanakan.</li>
+                   <li><strong>Expired Key:</strong> Waskita Key Anda mungkin sudah mencapai batas kuota atau tidak valid.</li>
+                   <li><strong>Region Block:</strong> Layanan image generation Google belum aktif sepenuhnya di wilayah ini.</li>
+                 </ul>
+              </div>
+
+              <button 
+                onClick={() => setShowDebugModal(false)}
+                className="w-full py-4 bg-stone-800 hover:bg-stone-700 text-white font-black rounded-xl transition-all uppercase tracking-widest text-[10px]"
+              >
+                TUTUP LAPORAN
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showImageModal && generatedImageUrl && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
