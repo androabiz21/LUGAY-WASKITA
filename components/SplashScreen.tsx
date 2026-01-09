@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Sparkles, Shield, ChevronRight, Zap, User, Key, Info, Loader2 } from 'lucide-react';
 
 interface SplashScreenProps {
-  onEnter: (config: { userName: string; apiKey: string }) => void;
+  onEnter: (config: { userName: string }) => void;
 }
 
 const SplashScreen: React.FC<SplashScreenProps> = ({ onEnter }) => {
@@ -11,7 +11,6 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onEnter }) => {
   const [showContent, setShowContent] = useState(false);
   const [isWelcoming, setIsWelcoming] = useState(false);
   const [userName, setUserName] = useState(localStorage.getItem('waskita_user') || '');
-  const [apiKey, setApiKey] = useState(localStorage.getItem('waskita_key') || '');
 
   useEffect(() => {
     const timer = setTimeout(() => setShowContent(true), 500);
@@ -20,11 +19,10 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onEnter }) => {
 
   const handleStart = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userName || !apiKey) return;
+    if (!userName) return;
 
     // Simpan kredensial
     localStorage.setItem('waskita_user', userName);
-    localStorage.setItem('waskita_key', apiKey);
 
     // Masuk ke tahap penyambutan
     setIsWelcoming(true);
@@ -32,7 +30,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onEnter }) => {
     // Setelah durasi tertentu, masuk ke aplikasi
     setTimeout(() => {
       setIsVisible(false);
-      setTimeout(() => onEnter({ userName, apiKey }), 800);
+      setTimeout(() => onEnter({ userName }), 800);
     }, 5000); // 5 detik durasi sambutan
   };
 
@@ -79,20 +77,6 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onEnter }) => {
                 />
               </div>
 
-              <div className="space-y-2 text-left">
-                <label className="text-[9px] font-black text-stone-500 uppercase tracking-widest flex items-center gap-2 px-1">
-                  <Key size={12} className="text-blue-500" /> Kunci Akses (Gemini API Key)
-                </label>
-                <input 
-                  type="password" 
-                  required
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  placeholder="AIzaSy..."
-                  className="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-3 text-sm text-white focus:border-blue-600 outline-none transition-all placeholder:text-stone-800"
-                />
-              </div>
-
               <button 
                 type="submit"
                 className="w-full group relative flex items-center justify-center pt-4"
@@ -108,7 +92,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onEnter }) => {
               <div className="pt-4 flex items-start gap-2 text-left opacity-40">
                 <Info size={12} className="shrink-0 mt-0.5 text-blue-400" />
                 <p className="text-[8px] text-stone-400 leading-relaxed italic">
-                  API Key diperlukan untuk mengaktifkan terawangan batin dan generasi gambar. Kredensial disimpan secara lokal di perangkat Anda.
+                  Selamat datang di ekosistem Waskita Pasundan. Identitas Anda diperlukan untuk menyelaraskan frekuensi terawangan batin dan generasi visual spiritual.
                 </p>
               </div>
             </form>

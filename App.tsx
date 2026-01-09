@@ -30,7 +30,7 @@ const App: React.FC = () => {
   const [activeView, setActiveView] = useState<AppView>(AppView.HOME);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isStarted, setIsStarted] = useState(false);
-  const [userConfig, setUserConfig] = useState<{ userName: string; apiKey: string } | null>(null);
+  const [userConfig, setUserConfig] = useState<{ userName: string } | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Sync state dengan event asli fullscreen browser
@@ -101,8 +101,6 @@ const App: React.FC = () => {
           onEnter={(config) => {
             setUserConfig(config);
             setIsStarted(true);
-            // Inisialisasi API Key secara global untuk service
-            (window as any).GEMINI_API_KEY = config.apiKey;
           }} 
         />
       )}

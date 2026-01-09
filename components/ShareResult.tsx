@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Share2, Copy, Image as ImageIcon, Download, Check, Loader2, Sparkles, X } from 'lucide-react';
+import { Share2, Copy, Image as ImageIcon, Download, Check, Loader2, Sparkles, X, AlertCircle } from 'lucide-react';
 import { generateResultIllustration } from '../services/gemini.ts';
 
 interface ShareResultProps {
@@ -17,21 +17,32 @@ const ShareResult: React.FC<ShareResultProps> = ({ title, text, context }) => {
 
   const handleCopy = async () => {
     const fullText = `[${title}]\n${context ? `Konteks: ${context}\n\n` : ''}${text}\n\n-- Dibagikan dari Gerbang Waskita Nusantara --`;
-    await navigator.clipboard.writeText(fullText);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(fullText);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Gagal menyalin:", err);
+    }
   };
 
   const handleGenerateIllustration = async () => {
+    setGeneratedImageUrl(null); // Bersihkan gambar lama
     setIsGeneratingImage(true);
-    const url = await generateResultIllustration(text, title);
-    if (url) {
-      setGeneratedImageUrl(url);
-      setShowImageModal(true);
-    } else {
-      alert("Gagal menenun ilustrasi batin. Sila coba lagi.");
+    try {
+      const url = await generateResultIllustration(text, title);
+      if (url) {
+        setGeneratedImageUrl(url);
+        setShowImageModal(true);
+      } else {
+        alert("Gagal menenun ilustrasi batin. Kemungkinan tabir dimensi sedang tertutup (Safety Filter) atau frekuensi terputus. Sila coba kembali dengan teks yang berbeda.");
+      }
+    } catch (err) {
+      console.error("Error generating image:", err);
+      alert("Terjadi kesalahan pada frekuensi jagat digital. Sila periksa koneksi Anda dan coba lagi.");
+    } finally {
+      setIsGeneratingImage(false);
     }
-    setIsGeneratingImage(false);
   };
 
   const downloadImage = () => {
@@ -39,7 +50,9 @@ const ShareResult: React.FC<ShareResultProps> = ({ title, text, context }) => {
     const link = document.createElement('a');
     link.href = generatedImageUrl;
     link.download = `Waskita_Nusantara_${title.replace(/\s+/g, '_')}.png`;
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -68,7 +81,7 @@ const ShareResult: React.FC<ShareResultProps> = ({ title, text, context }) => {
       </div>
 
       {showImageModal && generatedImageUrl && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
           <div className="max-w-md w-full glass-panel rounded-[40px] border border-amber-600/30 p-8 relative shadow-2xl animate-in zoom-in duration-300">
             <button 
               onClick={() => setShowImageModal(false)}
@@ -83,13 +96,17 @@ const ShareResult: React.FC<ShareResultProps> = ({ title, text, context }) => {
                 <h3 className="font-heritage text-xl font-bold uppercase tracking-wider">Ilustrasi Batin</h3>
               </div>
               
-              <div className="aspect-square w-full rounded-3xl overflow-hidden border border-amber-900/30 bg-stone-950 shadow-inner">
-                <img src={generatedImageUrl} alt="Waskita Illustration" className="w-full h-full object-cover" />
+              <div className="aspect-square w-full rounded-3xl overflow-hidden border border-amber-900/30 bg-stone-950 shadow-inner group relative">
+                <img src={generatedImageUrl} alt="Waskita Illustration" className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-transparent to-transparent opacity-40" />
               </div>
               
-              <p className="text-[10px] text-stone-500 italic text-center">
-                Visualisasi ini ditenun secara unik oleh AI Waskita berdasarkan inti risalah spiritual Anda.
-              </p>
+              <div className="p-4 bg-amber-950/20 border border-amber-900/30 rounded-2xl flex gap-3">
+                <AlertCircle size={16} className="text-amber-600 shrink-0 mt-0.5" />
+                <p className="text-[9px] text-stone-400 italic leading-relaxed">
+                  Visualisasi ini ditenun secara unik oleh AI Waskita berdasarkan inti risalah spiritual Anda melalui kaca benggala digital.
+                </p>
+              </div>
               
               <button 
                 onClick={downloadImage}

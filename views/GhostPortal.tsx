@@ -139,20 +139,14 @@ const GhostPortalView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ on
     { label: 'Ya Karuhun', text: 'Ya Karuhun... Berikan restu dan cahaya leluhur...' }
   ];
 
-  // Mengambil API key dinamis dari window object aktivasi
-  const getApiKey = () => (window as any).GEMINI_API_KEY || localStorage.getItem('waskita_key');
-
   // --- Pre-Caching Mantras on Mount ---
   useEffect(() => {
     const preCacheAllMantras = async () => {
-      const apiKey = getApiKey();
-      if (!apiKey) return;
-
       if (!audioCtxRef.current) {
         audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
       }
-      // Membuat instance baru dengan kunci aktivasi
-      const ai = new GoogleGenAI({ apiKey });
+      // Initialize AI using process.env.API_KEY as per guidelines.
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       
       for (const m of mysticalMantras) {
         try {
@@ -269,15 +263,10 @@ const GhostPortalView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ on
       return;
     }
 
-    const apiKey = getApiKey();
-    if (!apiKey) {
-      alert("Akses belum diaktivasi. Mohon segarkan halaman dan login.");
-      return;
-    }
-
     try {
       setLoading(true);
-      const ai = new GoogleGenAI({ apiKey });
+      // Initialize AI using process.env.API_KEY as per guidelines.
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const inputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
       const outputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
       
@@ -362,9 +351,6 @@ const GhostPortalView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ on
   const playMantraAudio = async (mantra: string) => {
     if (isCastingMantra) return;
     
-    const apiKey = getApiKey();
-    if (!apiKey) return;
-
     setIsCastingMantra(mantra);
     setEmfLevel(9.9);
     setTimeout(() => setEmfLevel(prev => Math.max(1.2, prev - 2)), 3000);
@@ -390,7 +376,7 @@ const GhostPortalView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ on
     }
 
     try {
-      const ai = new GoogleGenAI({ apiKey });
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash-preview-tts",
         contents: [{ parts: [{ text: `Ucapkan secara misterius, dalam, dan sakral: ${mantra}` }] }],
