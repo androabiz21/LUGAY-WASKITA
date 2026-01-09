@@ -10,8 +10,12 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script>
-        // Polyfill minimal untuk environment
+        // Polyfill dinamis untuk process.env
         window.process = window.process || { env: {} };
+        if (!window.process.env) window.process.env = {};
+        
+        // Memuat kunci dari localStorage jika ada
+        window.process.env.API_KEY = localStorage.getItem('waskita_key') || "";
         window.global = window;
     </script>
     <style>

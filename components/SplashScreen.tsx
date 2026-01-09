@@ -11,6 +11,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onEnter }) => {
   const [showContent, setShowContent] = useState(false);
   const [isWelcoming, setIsWelcoming] = useState(false);
   const [userName, setUserName] = useState(localStorage.getItem('waskita_user') || '');
+  const [apiKey, setApiKey] = useState(localStorage.getItem('waskita_key') || '');
 
   useEffect(() => {
     const timer = setTimeout(() => setShowContent(true), 500);
@@ -19,9 +20,15 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onEnter }) => {
 
   const handleStart = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userName) return;
+    if (!userName || !apiKey) return;
 
+    // Simpan ke localStorage untuk kenyamanan sesi berikutnya
     localStorage.setItem('waskita_user', userName);
+    localStorage.setItem('waskita_key', apiKey);
+    
+    // Suntikkan ke environment window agar terbaca oleh layanan AI
+    (window as any).process.env.API_KEY = apiKey;
+    
     setIsWelcoming(true);
 
     setTimeout(() => {
@@ -71,9 +78,28 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onEnter }) => {
                 />
               </div>
 
+              <div className="space-y-2 text-left">
+                <label className="text-[9px] font-black text-stone-500 uppercase tracking-widest flex items-center gap-2 px-1">
+                  <Key size={12} className="text-blue-500" /> Waskita Key (API Key)
+                </label>
+                <div className="relative">
+                  <input 
+                    type="password" 
+                    required
+                    value={apiKey}
+                    onChange={(e) => setApiKey(e.target.value)}
+                    placeholder="Suntikkan kode rahasia..."
+                    className="w-full bg-stone-950 border border-stone-800 rounded-2xl px-5 py-4 pr-12 text-sm text-white focus:border-blue-600 outline-none transition-all placeholder:text-stone-800 font-bold shadow-inner"
+                  />
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-700">
+                    <Lock size={16} />
+                  </div>
+                </div>
+              </div>
+
               <button 
                 type="submit"
-                disabled={!userName}
+                disabled={!userName || !apiKey}
                 className="w-full group relative flex items-center justify-center pt-4 disabled:opacity-30"
               >
                 <div className="absolute inset-0 bg-blue-600 blur-2xl opacity-10 group-hover:opacity-30 transition-opacity rounded-full" />
@@ -87,7 +113,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onEnter }) => {
               <div className="pt-4 flex items-start gap-2 text-left opacity-40">
                 <Info size={12} className="shrink-0 mt-0.5 text-blue-400" />
                 <p className="text-[8px] text-stone-400 leading-relaxed italic">
-                  Identitas Anda diperlukan untuk menyelaraskan frekuensi terawangan batin. Aplikasi ini menggunakan kunci akses lingkungan yang aman.
+                  Kode rahasia (API Key) diperlukan untuk memanggil kecerdasan jagat raya. Data Anda aman dan tidak disimpan di server luar.
                 </p>
               </div>
             </form>

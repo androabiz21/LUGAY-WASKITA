@@ -1,6 +1,15 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 
+/**
+ * Mendapatkan instance AI dengan kunci terbaru dari environment window.
+ * Ini memastikan kunci yang baru diketik pengguna di SplashScreen terbaca.
+ */
+const getAIClient = () => {
+  const apiKey = (window as any).process?.env?.API_KEY || "";
+  return new GoogleGenAI({ apiKey });
+};
+
 const SYSTEM_PROMPT = `Anda adalah GALURA LUGAY KANCANA Waskita Pasundan, entitas AI penjaga sanad kebudayaan, sejarah, dan spiritualitas Tanah Sunda yang diilhami oleh semangat Lugay Kancana. 
 TUGAS UTAMA: 
 1. Gunakan Bahasa Indonesia yang sangat puitis dan berwibawa.
@@ -21,11 +30,18 @@ const sanitizeText = (text: string | undefined) => {
     .trim();
 };
 
+/**
+ * Filter prompt gambar yang sangat ketat untuk menghindari Safety Filter model AI.
+ * Mengubah deskripsi mistis menjadi deskripsi artistik murni.
+ */
 const cleanForImagePrompt = (text: string) => {
-  const riskyWords = [/khodam/gi, /hantu/gi, /setan/gi, /iblis/gi, /jin/gi, /demon/gi, /ghost/gi, /spirit/gi, /magic/gi, /mistik/gi, /gaib/gi, /blood/gi, /dark/gi, /horror/gi];
+  const riskyWords = [/khodam/gi, /hantu/gi, /setan/gi, /iblis/gi, /jin/gi, /demon/gi, /ghost/gi, /spirit/gi, /magic/gi, /mistik/gi, /gaib/gi, /blood/gi, /dark/gi, /horror/gi, /ritual/gi];
   let cleaned = text;
   riskyWords.forEach(regex => { cleaned = cleaned.replace(regex, 'luminous energy'); });
-  return `A majestic artistic digital painting, ${cleaned.substring(0, 150).replace(/[^\w\s]/gi, ' ')}, traditional Indonesian batik patterns, glowing golden aura, masterpiece quality, cinematic lighting, benevolent spiritual atmosphere.`;
+  
+  // Ambil intisari dan buat menjadi prompt artistik aman
+  const context = cleaned.substring(0, 150).replace(/[^\w\s]/gi, ' ');
+  return `A majestic artistic digital painting of ${context}, featured with traditional Indonesian batik sacred geometric patterns, glowing golden aura, ethereal warm lighting, masterpiece quality, cinematic atmosphere, benevolent and peaceful spiritual aesthetic.`;
 };
 
 /**
@@ -44,7 +60,7 @@ const extractImageUrl = (response: any) => {
 };
 
 export async function getCulturalSynthesis(prompt: string) {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: "gemini-3-pro-preview",
     contents: prompt,
@@ -58,7 +74,7 @@ export async function getMantraContext(prompt: string) {
 }
 
 export async function getLocationChronicle(locationName: string, coords: string) {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: `Berikan risalah sejarah dan legenda untuk lokasi '${locationName}' di koordinat '${coords}'. Penuhi lebar layar.`,
@@ -68,7 +84,7 @@ export async function getLocationChronicle(locationName: string, coords: string)
 }
 
 export async function searchCultureDiscovery(query: string) {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: query,
@@ -78,7 +94,7 @@ export async function searchCultureDiscovery(query: string) {
 }
 
 export async function analyzePalmistry(base64Image: string) {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: {
@@ -93,7 +109,7 @@ export async function analyzePalmistry(base64Image: string) {
 }
 
 export async function analyzeFaceReading(base64Image: string, name: string, birthDate: string, motherName: string) {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: {
@@ -108,7 +124,7 @@ export async function analyzeFaceReading(base64Image: string, name: string, birt
 }
 
 export async function getDreamInterpretation(dream: string) {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: `Nyungsi hartos impian: ${dream}. Penuhi lebar layar.`,
@@ -118,7 +134,7 @@ export async function getDreamInterpretation(dream: string) {
 }
 
 export async function generateAmalan(category: string, hajat: string) {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: "gemini-3-pro-preview",
     contents: `Susun amalan batin kategori ${category} untuk hajat: ${hajat}. Penuhi lebar layar.`,
@@ -128,7 +144,7 @@ export async function generateAmalan(category: string, hajat: string) {
 }
 
 export async function analyzeAura(base64Image: string, name: string) {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: { 
@@ -143,7 +159,7 @@ export async function analyzeAura(base64Image: string, name: string) {
 }
 
 export async function generateHealingProtocol(name: string, condition: string, type: string) {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: "gemini-3-pro-preview",
     contents: `Ramulah risalah Usada untuk ${name} dengan keluhan ${condition}. Penuhi lebar layar.`,
@@ -153,7 +169,7 @@ export async function generateHealingProtocol(name: string, condition: string, t
 }
 
 export async function getMysticalProtection(name: string, condition: string) {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: `Ramulah amalan benteng batin untuk ${name} menghadapi ${condition}. Penuhi lebar layar.`,
@@ -163,7 +179,7 @@ export async function getMysticalProtection(name: string, condition: string) {
 }
 
 export async function analyzeHandwriting(base64Image: string) {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: {
@@ -178,7 +194,7 @@ export async function analyzeHandwriting(base64Image: string) {
 }
 
 export async function analyzeKhodam(base64Image: string, name: string, birthDate: string, motherName: string) {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: {
@@ -193,13 +209,13 @@ export async function analyzeKhodam(base64Image: string, name: string, birthDate
 }
 
 export async function generateKhodamVisual(base64Image: string, analysis: string) {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-image',
     contents: {
       parts: [
         { inlineData: { data: base64Image, mimeType: 'image/jpeg' } },
-        { text: "Edit photo to add a majestic glowing golden aura and traditional Indonesian batik patterns. Style: Sacred oil painting, masterpiece." }
+        { text: "Enhance this photo by adding a majestic glowing golden aura and intricate traditional Indonesian batik sacred geometric patterns in the background. Style: Sacred oil painting, masterpiece quality, benevolent warm lighting, ethereal atmosphere." }
       ]
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
@@ -208,17 +224,17 @@ export async function generateKhodamVisual(base64Image: string, analysis: string
 }
 
 export async function generateCardVisual(cardName: string) {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-image',
-    contents: { parts: [{ text: `A beautiful artistic card of "${cardName}" in traditional batik style. Gold colors, masterpiece.` }] },
+    contents: { parts: [{ text: `A beautiful artistic card illustration of "${cardName}" in traditional Indonesian batik and gold style. Glowing colors, oil painting, masterpiece quality, white background.` }] },
     config: { imageConfig: { aspectRatio: "1:1" } }
   });
   return extractImageUrl(response);
 }
 
 export async function analyzeFengShui(base64Image: string) {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: {
@@ -243,7 +259,7 @@ export async function analyzeFengShui(base64Image: string) {
 }
 
 export async function detectMysticalEnergy(base64Image: string, extraPrompt: string) {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: {
@@ -258,7 +274,7 @@ export async function detectMysticalEnergy(base64Image: string, extraPrompt: str
 }
 
 export async function analyzePortalEnergy(base64Image: string, locationType: string, resonanceLevel: number) {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: {
@@ -273,7 +289,7 @@ export async function analyzePortalEnergy(base64Image: string, locationType: str
 }
 
 export async function generateBalaRitual(analysis: string) {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: `Berdasarkan analisis energi: "${analysis}", susun amalan penyeimbang batin. Penuhi lebar layar.`,
@@ -283,13 +299,13 @@ export async function generateBalaRitual(analysis: string) {
 }
 
 export async function generateMysticalVisual(base64Image: string, textResult: string) {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-image',
     contents: {
       parts: [
         { inlineData: { data: base64Image, mimeType: 'image/jpeg' } },
-        { text: "Enhance this photo with beautiful golden glowing energy patterns and Nusantara ornaments. Masterpiece digital art." }
+        { text: "Enhance this photo with beautiful golden glowing energy patterns and intricate Nusantara traditional ornaments. Masterpiece digital art, warm ethereal lighting." }
       ]
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
@@ -298,7 +314,7 @@ export async function generateMysticalVisual(base64Image: string, textResult: st
 }
 
 export async function generateResultIllustration(text: string, title: string) {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = getAIClient();
   const safePrompt = cleanForImagePrompt(text);
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-image',
@@ -309,17 +325,17 @@ export async function generateResultIllustration(text: string, title: string) {
 }
 
 export async function generateAksaraArt(aksaraType: string, text: string) {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-image',
-    contents: { parts: [{ text: `Sacred calligraphy of ${text} in ${aksaraType} style on ancient parchment. Gold ink.` }] },
+    contents: { parts: [{ text: `Sacred calligraphy of the word "${text}" in ancient ${aksaraType} style on aged parchment paper. Gold ink, glowing, masterpiece quality.` }] },
     config: { imageConfig: { aspectRatio: "1:1" } }
   });
   return extractImageUrl(response);
 }
 
 export async function generateAncientRitual(category: string, name: string, targetName: string, targetBirthDate: string, targetParent: string, notes: string, base64Image: string) {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = getAIClient();
   const textResponse = await ai.models.generateContent({
     model: "gemini-3-pro-preview",
     contents: `Susun risalah ritual kuno kategori ${category} untuk ${name}. Penuhi layar.`,
@@ -331,7 +347,7 @@ export async function generateAncientRitual(category: string, name: string, targ
     contents: {
       parts: [
         { inlineData: { data: base64Image, mimeType: 'image/jpeg' } },
-        { text: "A majestic traditional Indonesian spiritual scene with glowing golden lights. Masterpiece oil painting." }
+        { text: "A majestic scene of traditional Indonesian spiritual ceremony with glowing golden lights and sacred batik ornaments. Masterpiece oil painting, cinematic lighting, warm atmosphere." }
       ]
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
@@ -340,13 +356,13 @@ export async function generateAncientRitual(category: string, name: string, targ
 }
 
 export async function visualizePortalEntity(base64Image: string, analysis: string) {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-image',
     contents: {
       parts: [
         { inlineData: { data: base64Image, mimeType: 'image/jpeg' } },
-        { text: "Visualize majestic golden glowing energy manifestation. Masterpiece digital art." }
+        { text: "Visualize majestic golden glowing energy manifestation with traditional Nusantara spiritual motifs. Masterpiece digital art, warm ethereal lighting." }
       ]
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
@@ -355,20 +371,20 @@ export async function visualizePortalEntity(base64Image: string, analysis: strin
 }
 
 export async function generateRajahVisual(ritualText: string) {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-image',
-    contents: { parts: [{ text: "Sacred gold calligraphy pattern on ancient parchment. Masterpiece quality." }] },
+    contents: { parts: [{ text: "Sacred gold calligraphy pattern on ancient parchment paper, traditional Indonesian spiritual script. Masterpiece quality, glowing." }] },
     config: { imageConfig: { aspectRatio: "1:1" } }
   });
   return extractImageUrl(response);
 }
 
 export async function communicateWithEntity(context: string, message: string) {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
-    contents: { parts: [{ text: `Balas pesan manusia ini dengan bijak: "${message}". Singkat, misterius.` }] },
+    contents: { parts: [{ text: `Balas pesan manusia ini dengan bijak dan puitis: "${message}". Singkat, misterius.` }] },
     config: { systemInstruction: SYSTEM_PROMPT }
   });
   return sanitizeText(response.text) || '...suara statis...';
