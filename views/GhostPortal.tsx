@@ -146,13 +146,19 @@ const GhostPortalView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ on
     { label: 'Ya Karuhun', text: 'Ya Karuhun... Berikan restu dan cahaya leluhur...' }
   ];
 
+  // Helper untuk mendapatkan API key dinamis
+  const getApiKey = () => (window as any).GEMINI_API_KEY || process.env.API_KEY;
+
   // --- Pre-Caching Mantras on Mount ---
   useEffect(() => {
     const preCacheAllMantras = async () => {
+      const apiKey = getApiKey();
+      if (!apiKey) return;
+
       if (!audioCtxRef.current) {
         audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
       }
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const ai = new GoogleGenAI({ apiKey });
       
       for (const m of mysticalMantras) {
         try {
@@ -269,9 +275,15 @@ const GhostPortalView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ on
       return;
     }
 
+    const apiKey = getApiKey();
+    if (!apiKey) {
+      alert("Kunci akses tidak ditemukan. Harap segarkan halaman.");
+      return;
+    }
+
     try {
       setLoading(true);
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const ai = new GoogleGenAI({ apiKey });
       const inputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
       const outputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
       
@@ -353,11 +365,13 @@ const GhostPortalView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ on
     setIsEntitySpeaking(false);
   };
 
-  // --- UPDATED playMantraAudio: Instant Playback from Cache ---
   const playMantraAudio = async (mantra: string) => {
     if (isCastingMantra) return;
-    setIsCastingMantra(mantra);
     
+    const apiKey = getApiKey();
+    if (!apiKey) return;
+
+    setIsCastingMantra(mantra);
     setEmfLevel(9.9);
     setTimeout(() => setEmfLevel(prev => Math.max(1.2, prev - 2)), 3000);
 
@@ -376,15 +390,13 @@ const GhostPortalView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ on
       source.onended = () => setIsCastingMantra(null);
     };
 
-    // 1. Cek Cache (Instant)
     if (mantraCacheRef.current[mantra]) {
       playBuffer(mantraCacheRef.current[mantra]);
       return;
     }
 
-    // 2. Fallback jika cache belum siap (Fetch as usual)
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const ai = new GoogleGenAI({ apiKey });
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash-preview-tts",
         contents: [{ parts: [{ text: `Ucapkan secara misterius, dalam, dan sakral: ${mantra}` }] }],
@@ -397,7 +409,7 @@ const GhostPortalView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ on
       const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
       if (base64Audio) {
         const buffer = await decodeAudioData(decode(base64Audio), audioCtxRef.current, 24000, 1);
-        mantraCacheRef.current[mantra] = buffer; // Simpan ke cache untuk pemakaian berikutnya
+        mantraCacheRef.current[mantra] = buffer;
         playBuffer(buffer);
       } else {
         setIsCastingMantra(null);
