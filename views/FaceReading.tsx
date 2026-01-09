@@ -6,7 +6,7 @@ import ShareResult from '../components/ShareResult.tsx';
 import { AppView } from '../types.ts';
 
 const FaceReadingView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ onNavigate }) => {
-  const [name, setName] = useState('');
+  const [name, setName] = useState(localStorage.getItem('waskita_user') || '');
   const [birthDate, setBirthDate] = useState('');
   const [motherName, setMotherName] = useState('');
   const [image, setImage] = useState<string | null>(null);
@@ -96,9 +96,9 @@ const FaceReadingView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ on
       const base64Data = image.split(',')[1];
       const result = await analyzeFaceReading(base64Data, name, birthDate, motherName);
       setAnalysis(result);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setAnalysis("Gagal menembus tirai paras batin. Sila coba kembali.");
+      setAnalysis(err.message || "Gagal menembus tirai paras batin. Sila coba kembali.");
     } finally {
       setLoading(false);
     }

@@ -9,7 +9,7 @@ type AksaraTab = 'history' | 'generator' | 'neptu';
 
 const AksaraWaskitaView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ onNavigate }) => {
   const [activeTab, setActiveTab] = useState<AksaraTab>('history');
-  const [inputText, setInputText] = useState('');
+  const [inputText, setInputText] = useState(localStorage.getItem('waskita_user') || '');
   const [aksaraType, setAksaraType] = useState('Aksara Sunda (Kaganga)');
   const [generatedArt, setGeneratedArt] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -106,6 +106,7 @@ const AksaraWaskitaView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ 
         setLoading(true);
         getCulturalSynthesis(`Berikan risalah batin dan numerologi untuk nama "${inputText}" dengan total Neptu Aksara ${neptuResult.total}. Gunakan gaya bahasa waskita puitis Nusantara tanpa simbol bintang.`)
           .then(setAiInsight)
+          .catch(err => setAiInsight(err.message))
           .finally(() => setLoading(false));
       }, 500);
       return () => clearTimeout(timer);
@@ -115,19 +116,29 @@ const AksaraWaskitaView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ 
   const handleGenerateArt = async () => {
     if (!inputText.trim()) return;
     setLoading(true); setGeneratedArt(null); setAiInsight('');
-    const promptText = aksaraType === 'Aksara Sunda (Kaganga)' ? `${inputText} (visualized as ${sundaResult})` : inputText;
-    const url = await generateAksaraArt(aksaraType, promptText);
-    setGeneratedArt(url);
-    const insight = await getCulturalSynthesis(`Risalah filosofis agung ${aksaraType} untuk teks "${inputText}". Jelaskan makna spiritual bentuk aksara tersebut. Teks polos puitis tanpa simbol bintang.`);
-    setAiInsight(insight);
-    setLoading(false);
+    try {
+      const promptText = aksaraType === 'Aksara Sunda (Kaganga)' ? `${inputText} (visualized as ${sundaResult})` : inputText;
+      const url = await generateAksaraArt(aksaraType, promptText);
+      setGeneratedArt(url);
+      const insight = await getCulturalSynthesis(`Risalah filosofis agung ${aksaraType} untuk teks "${inputText}". Jelaskan makna spiritual bentuk aksara tersebut. Teks polos puitis tanpa simbol bintang.`);
+      setAiInsight(insight);
+    } catch (err: any) {
+      setAiInsight(err.message || "Gagal mengakses batin digital.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchHistory = async (type: string) => {
     setLoading(true); setAiInsight(''); setGeneratedArt(null);
-    const insight = await getCulturalSynthesis(`Risalah mendalam sejarah aksara ${type} di Nusantara. Pallawa hingga lokal. Gaya waskita agung puitis tanpa simbol bintang.`);
-    setAiInsight(insight);
-    setLoading(false);
+    try {
+      const insight = await getCulturalSynthesis(`Risalah mendalam sejarah aksara ${type} di Nusantara. Pallawa hingga lokal. Gaya waskita agung puitis tanpa simbol bintang.`);
+      setAiInsight(insight);
+    } catch (err: any) {
+      setAiInsight(err.message || "Sanad sejarah terputus.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCopy = () => { navigator.clipboard.writeText(sundaResult); setCopied(true); setTimeout(() => setCopied(false), 2000); };
@@ -150,7 +161,7 @@ const AksaraWaskitaView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ 
 
       <div className="flex flex-wrap gap-2 px-4 md:px-0 overflow-x-auto pb-4 scrollbar-hide">
         {['history', 'generator', 'neptu'].map((t) => (
-          <button key={t} onClick={() => { setActiveTab(t as AksaraTab); setAiInsight(''); setGeneratedArt(null); setInputText(''); }} className={`shrink-0 flex items-center gap-2 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border ${activeTab === t ? 'bg-amber-600 text-stone-950 border-amber-600 shadow-xl' : 'bg-stone-900/40 border-stone-800 text-stone-500 hover:text-stone-300'}`}>
+          <button key={t} onClick={() => { setActiveTab(t as AksaraTab); setAiInsight(''); setGeneratedArt(null); setInputText(localStorage.getItem('waskita_user') || ''); }} className={`shrink-0 flex items-center gap-2 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border ${activeTab === t ? 'bg-amber-600 text-stone-950 border-amber-600 shadow-xl' : 'bg-stone-900/40 border-stone-800 text-stone-500 hover:text-stone-300'}`}>
             {t === 'history' ? 'Sanad Sejarah' : t === 'generator' ? 'Konversi & Kaligrafi' : 'Neptu Aksara'}
           </button>
         ))}

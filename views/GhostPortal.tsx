@@ -8,13 +8,6 @@ import { AppView } from '../types.ts';
 
 type CameraFilter = 'normal' | 'negative' | 'wulung' | 'infrared' | 'nightvision';
 
-interface EnergyNode {
-  x: number;
-  y: number;
-  intensity: number;
-  phase: number;
-}
-
 // --- Audio Utility Functions ---
 function encode(bytes: Uint8Array) {
   let binary = '';
@@ -146,8 +139,8 @@ const GhostPortalView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ on
     { label: 'Ya Karuhun', text: 'Ya Karuhun... Berikan restu dan cahaya leluhur...' }
   ];
 
-  // Helper untuk mendapatkan API key dinamis
-  const getApiKey = () => (window as any).GEMINI_API_KEY || process.env.API_KEY;
+  // Mengambil API key dinamis dari window object aktivasi
+  const getApiKey = () => (window as any).GEMINI_API_KEY || localStorage.getItem('waskita_key');
 
   // --- Pre-Caching Mantras on Mount ---
   useEffect(() => {
@@ -158,6 +151,7 @@ const GhostPortalView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ on
       if (!audioCtxRef.current) {
         audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
       }
+      // Membuat instance baru dengan kunci aktivasi
       const ai = new GoogleGenAI({ apiKey });
       
       for (const m of mysticalMantras) {
@@ -277,7 +271,7 @@ const GhostPortalView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ on
 
     const apiKey = getApiKey();
     if (!apiKey) {
-      alert("Kunci akses tidak ditemukan. Harap segarkan halaman.");
+      alert("Akses belum diaktivasi. Mohon segarkan halaman dan login.");
       return;
     }
 

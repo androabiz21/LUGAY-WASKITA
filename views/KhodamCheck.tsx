@@ -6,7 +6,7 @@ import ShareResult from '../components/ShareResult.tsx';
 import { AppView } from '../types.ts';
 
 const KhodamCheckView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ onNavigate }) => {
-  const [name, setName] = useState('');
+  const [name, setName] = useState(localStorage.getItem('waskita_user') || '');
   const [birthDate, setBirthDate] = useState('');
   const [motherName, setMotherName] = useState('');
   const [image, setImage] = useState<string | null>(null);
@@ -91,8 +91,8 @@ const KhodamCheckView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ on
       setAnalysis(resultText);
       const visualUrl = await generateKhodamVisual(base64Data, resultText);
       setKhodamVisual(visualUrl);
-    } catch (err) {
-      alert("Gagal menyingkap tabir.");
+    } catch (err: any) {
+      alert(err.message || "Gagal menyingkap tabir.");
     } finally {
       setLoading(false);
     }

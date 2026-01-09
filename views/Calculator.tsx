@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { calculateWeton, getWatak, getZodiac } from '../services/calculator.ts';
 import { getCulturalSynthesis } from '../services/gemini.ts';
 import { 
@@ -91,7 +91,7 @@ const CharacterConstellation = ({ data }: { data: { subject: string, value: numb
 };
 
 const CalculatorView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ onNavigate }) => {
-  const [userName, setUserName] = useState('');
+  const [userName, setUserName] = useState(localStorage.getItem('waskita_user') || '');
   const [birthDate, setBirthDate] = useState(''); 
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -128,16 +128,21 @@ const CalculatorView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ onN
     setLoading(true);
     setResult(null); 
     setAiInsight('');
-    const weton = calculateWeton(date);
-    const zodiac = getZodiac(date);
-    const watakText = getWatak(weton.totalNeptu);
-    const element = getElementInfo(weton.pasaranName);
-    const calcResult = { ...weton, zodiac, watak: watakText, elementInfo: element };
-    const prompt = `Analisis Weton: ${weton.javaneseDate}, Neptu: ${weton.totalNeptu}, Zodiak: ${zodiac}. Berikan risalah puitis Nusantara yang mendalam tanpa simbol bintang. Manfaatkan seluruh lebar teks secara maksimal.`;
-    const insight = await getCulturalSynthesis(prompt);
-    setAiInsight(insight);
-    setResult(calcResult);
-    setLoading(false);
+    try {
+      const weton = calculateWeton(date);
+      const zodiac = getZodiac(date);
+      const watakText = getWatak(weton.totalNeptu);
+      const element = getElementInfo(weton.pasaranName);
+      const calcResult = { ...weton, zodiac, watak: watakText, elementInfo: element };
+      const prompt = `Analisis Weton untuk ${userName}: ${weton.javaneseDate}, Neptu: ${weton.totalNeptu}, Zodiak: ${zodiac}. Berikan risalah puitis Nusantara yang mendalam tanpa simbol bintang. Manfaatkan seluruh lebar teks secara maksimal.`;
+      const insight = await getCulturalSynthesis(prompt);
+      setAiInsight(insight);
+      setResult(calcResult);
+    } catch (err: any) {
+      setAiInsight(err.message || "Gagal mengakses waskita digital.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const characterData = useMemo(() => {

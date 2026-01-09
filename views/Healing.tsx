@@ -8,7 +8,7 @@ import ShareResult from '../components/ShareResult.tsx';
 
 const HealingView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ onNavigate }) => {
   const [activeTab, setActiveTab] = useState<'healing' | 'protection' | 'aura'>('healing');
-  const [userName, setUserName] = useState('');
+  const [userName, setUserName] = useState(localStorage.getItem('waskita_user') || '');
   const [condition, setCondition] = useState('');
   const [birthDate, setBirthDate] = useState(''); 
   const [healingType, setHealingType] = useState<'medis' | 'non-medis'>('medis');
@@ -85,7 +85,11 @@ const HealingView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ onNavi
       else if (activeTab === 'protection') res = await getMysticalProtection(userName, condition);
       else { const b64 = image!.split(',')[1]; res = await analyzeAura(b64, userName); }
       setResult(res);
-    } catch (err) { alert("Gagal."); } finally { setLoading(false); }
+    } catch (err: any) {
+      setResult(err.message || "Gagal meresonansi frekuensi batin.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { return () => stopCamera(); }, []);

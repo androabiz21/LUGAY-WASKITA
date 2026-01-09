@@ -1,14 +1,12 @@
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Shield, Award, MapPin, Landmark, History, Home, Briefcase, School } from 'lucide-react';
 import { AppView } from '../types.ts';
 
 const ProfileView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ onNavigate }) => {
-  // Mengambil nama user dari localStorage
-  const activeUser = useMemo(() => {
-    return localStorage.getItem('waskita_user') || 'Kang Dodi Lugay';
-  }, []);
-
+  // Identitas Inohong Pembuat Aplikasi (Sesuai Permintaan: Jangan Dirubah)
+  const creatorName = "Kang Dodi Lugay";
+  
   const credentials = [
     { icon: <Shield className="text-blue-600" size={18} />, label: "Guru Besar Lugay Kancana", desc: "Penerus Sanad Maenpo Purwakarta" },
     { icon: <Briefcase className="text-blue-600" size={18} />, label: "Sekretaris APN", desc: "Asosiasi Pesilat Nusantara" },
@@ -33,8 +31,8 @@ const ProfileView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ onNavi
             </div>
           </div>
           <div className="flex-1 space-y-6 text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-600 text-stone-950 rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg">Inohong Digital Aktif</div>
-            <h1 className="text-5xl md:text-8xl font-heritage font-bold text-white text-glow-amber tracking-tight leading-none uppercase">{activeUser}</h1>
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-600 text-stone-950 rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg">Inohong Pembuat Aplikasi</div>
+            <h1 className="text-5xl md:text-8xl font-heritage font-bold text-white text-glow-amber tracking-tight leading-none uppercase">{creatorName}</h1>
             <div className="flex flex-wrap justify-center lg:justify-start gap-6 mt-6">
               <div className="flex items-center gap-2 text-stone-500 font-bold text-[10px] uppercase tracking-widest"><MapPin size={14} className="text-blue-700" /> Purwakarta / Jagat Digital</div>
               <div className="flex items-center gap-2 text-stone-500 font-bold text-[10px] uppercase tracking-widest"><Landmark size={14} className="text-blue-700" /> Lugay Kancana</div>
@@ -52,13 +50,11 @@ const ProfileView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ onNavi
              </div>
              <div className="p-6 md:p-16 bg-stone-900/30 border border-stone-800 rounded-[40px] italic text-stone-100 text-lg md:text-3xl leading-relaxed text-justify shadow-inner space-y-8 font-medium">
                <p>
-                 Selamat datang, <span className="text-blue-400 font-bold">{activeUser}</span>. Anda kini terdaftar sebagai bagian dari sanad digital 
-                 Galura Lugay Kancana. Sesuai amanah Kang Dodi Lugay, aplikasi ini dirancang untuk membantu Anda merajut 
-                 kearifan purba Pasundan dengan kecanggihan waskita masa depan.
+                 Sanad Lugay Kancana berakar pada ajaran Maenpo yang mementingkan olah rasa dan keseimbangan. <span className="text-blue-400 font-bold">{creatorName}</span> mendedikasikan aplikasi ini sebagai wadah preservasi digital 
+                 untuk kearifan lokal Tatar Pasundan agar tetap relevan di zaman serba cepat.
                </p>
                <p>
-                 Sanad Lugay Kancana berakar pada ajaran Maenpo yang mementingkan olah rasa dan keseimbangan. Melalui 
-                 gerbang ini, setiap langkah Anda diawasi oleh nilai-nilai luhur silih asah, silih asih, dan silih asuh.
+                 Melalui gerbang ini, setiap langkah Anda diawasi oleh nilai-nilai luhur silih asah, silih asih, dan silih asuh. Teknologi ini hanyalah alat, sejatinya waskita lahir dari kejernihan hati dan ketulusan laku.
                </p>
              </div>
            </section>

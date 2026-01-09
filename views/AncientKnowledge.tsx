@@ -6,7 +6,7 @@ import ShareResult from '../components/ShareResult.tsx';
 import { AppView } from '../types.ts';
 
 const AncientKnowledgeView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ onNavigate }) => {
-  const [name, setName] = useState('');
+  const [name, setName] = useState(localStorage.getItem('waskita_user') || '');
   const [targetName, setTargetName] = useState('');
   const [targetBirthDate, setTargetBirthDate] = useState('');
   const [targetParent, setTargetParent] = useState('');
@@ -134,8 +134,8 @@ const AncientKnowledgeView: React.FC<{ onNavigate: (view: AppView) => void }> = 
       
       setAnalysis(result.analysisText);
       setRitualVisual(result.visualUrl);
-    } catch (err) {
-      alert("Energi batin sedang kacau. Sila coba lagi.");
+    } catch (err: any) {
+      alert(err.message || "Energi batin sedang kacau. Sila coba lagi.");
     } finally {
       setLoading(false);
     }

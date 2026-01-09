@@ -1,14 +1,15 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 
-// Fungsi pembantu untuk inisialisasi AI dengan Key dinamis
+// Fungsi pembantu untuk inisialisasi AI dengan Key dinamis dari aktivasi login
 const getAIInstance = () => {
-  // Mengambil API Key dari window object yang diset di App.tsx
-  // Jika tidak ada (fallback), gunakan process.env untuk development
-  const apiKey = (window as any).GEMINI_API_KEY || process.env.API_KEY;
-  if (!apiKey) {
-    console.warn("API Key tidak ditemukan. Sila masukkan melalui Splash Screen.");
+  // Mengambil API Key dari window object yang diset saat aktivasi di SplashScreen/App
+  const apiKey = (window as any).GEMINI_API_KEY || localStorage.getItem('waskita_key');
+  
+  if (!apiKey || apiKey === "undefined" || apiKey.length < 10) {
+    throw new Error("Gerbang Waskita belum diaktivasi atau kunci tidak valid. Sila kembali ke layar awal.");
   }
+  
   return new GoogleGenAI({ apiKey });
 };
 
@@ -40,23 +41,26 @@ const sanitizeText = (text: string) => {
 };
 
 export async function getCulturalSynthesis(prompt: string) {
-  const ai = getAIInstance();
   try {
+    const ai = getAIInstance();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: [{ parts: [{ text: prompt + " (Sampaikan dalam gaya puitis Sunda Buhun, penuhi lebar layar secara horizontal maksimal, jangan ramping)." }] }],
       config: { systemInstruction: SYSTEM_PROMPT, temperature: 0.7 },
     });
     return sanitizeText(response.text || '');
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
-    return "Jagat Sagala sedang mengalami gangguan frekuensi batin. Pastikan API Key Anda valid.";
+    if (error.message.includes("404") || error.message.includes("not found")) {
+      return "Kunci akses tidak dikenali oleh jagat raya. Sila periksa kembali API Key Anda.";
+    }
+    return "Jagat Sagala sedang mengalami gangguan frekuensi batin. Pastikan kunci aktivasi Anda valid.";
   }
 }
 
 export async function getLocationChronicle(locationName: string, coords: string) {
-  const ai = getAIInstance();
   try {
+    const ai = getAIInstance();
     const prompt = `Berikan risalah sejarah resmi, histori peristiwa penting, and legenda yang berkaitan dengan lokasi '${locationName}' di koordinat '${coords}'. Gunakan data akurat dari internet. Sampaikan dalam narasi puitis Waskita Pasundan yang sangat megah, penuhi lebar layar.`;
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
@@ -79,8 +83,8 @@ export async function getMantraContext(prompt: string) {
 }
 
 export async function analyzePalmistry(base64Image: string) {
-  const ai = getAIInstance();
   try {
+    const ai = getAIInstance();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: [{
@@ -93,13 +97,13 @@ export async function analyzePalmistry(base64Image: string) {
     });
     return sanitizeText(response.text || 'Gagal merajut makna rajah batin.');
   } catch (error) {
-    return "Sinyal batin terputus dalam kabut Parahyangan.";
+    return "Sinyal batin terputus dalam kabut Parahyangan. Periksa aktivasi kunci Anda.";
   }
 }
 
 export async function analyzeFaceReading(base64Image: string, name: string, birthDate: string, motherName: string) {
-  const ai = getAIInstance();
   try {
+    const ai = getAIInstance();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: [{
@@ -112,13 +116,13 @@ export async function analyzeFaceReading(base64Image: string, name: string, birt
     });
     return sanitizeText(response.text || '');
   } catch (error) {
-    return "Gagal membaca paras batin.";
+    return "Gagal membaca paras batin. Pastikan kunci aktivasi valid.";
   }
 }
 
 export async function getDreamInterpretation(dream: string) {
-  const ai = getAIInstance();
   try {
+    const ai = getAIInstance();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: [{ parts: [{ text: `Nyungsi hartos impian: ${dream}. Berikan tafsir puitis Sunda Buhun yang mendalam, penuhi lebar layar secara horizontal maksimal.` }] }],
@@ -129,20 +133,20 @@ export async function getDreamInterpretation(dream: string) {
 }
 
 export async function generateAmalan(category: string, hajat: string) {
-  const ai = getAIInstance();
   try {
+    const ai = getAIInstance();
     const response = await ai.models.generateContent({
       model: "gemini-3-pro-preview",
       contents: [{ parts: [{ text: `Susunlah amalan batin kategori ${category} untuk hajat: ${hajat}. Gunakan bahasa puitis Sunda Buhun yang sakral, penuhi lebar layar secara horizontal maksimal.` }] }],
-      config: { systemInstruction: SYSTEM_PROMPT }
+      config: { systemInstruction: SYSTEM_PROMPT, thinkingConfig: { thinkingBudget: 4000 } }
     });
     return sanitizeText(response.text || '');
   } catch (error) { return "Gagal mengolah risalah amalan."; }
 }
 
 export async function analyzeAura(base64Image: string, name: string) {
-  const ai = getAIInstance();
   try {
+    const ai = getAIInstance();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: [{ 
@@ -158,20 +162,20 @@ export async function analyzeAura(base64Image: string, name: string) {
 }
 
 export async function generateHealingProtocol(name: string, condition: string, type: string) {
-  const ai = getAIInstance();
   try {
+    const ai = getAIInstance();
     const response = await ai.models.generateContent({
       model: "gemini-3-pro-preview",
       contents: [{ parts: [{ text: `Ramulah risalah Usada (Penyembuhan) Pasundan untuk ${name} dengan keluhan ${condition} (Kategori: ${type}). Sertakan mantra penawar and laku batin. Gaya Sunda Buhun, penuhi lebar layar secara horizontal maksimal.` }] }],
-      config: { systemInstruction: SYSTEM_PROMPT }
+      config: { systemInstruction: SYSTEM_PROMPT, thinkingConfig: { thinkingBudget: 4000 } }
     });
     return sanitizeText(response.text || '');
   } catch (error) { return "Gagal meramu penawar."; }
 }
 
 export async function analyzeHandwriting(base64Image: string) {
-  const ai = getAIInstance();
   try {
+    const ai = getAIInstance();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: [{
@@ -189,8 +193,8 @@ export async function analyzeHandwriting(base64Image: string) {
 }
 
 export async function analyzeKhodam(base64Image: string, name: string, birthDate: string, motherName: string) {
-  const ai = getAIInstance();
   try {
+    const ai = getAIInstance();
     const response = await ai.models.generateContent({
       model: "gemini-3-pro-preview",
       contents: [{
@@ -199,7 +203,7 @@ export async function analyzeKhodam(base64Image: string, name: string, birthDate
           { text: `Singkap tabir Khodam pendamping untuk ${name}, lahir ${birthDate}, anak dari ${motherName}. Pindai aura pada citra and hubungkan dengan sanad leluhur. Penuhi lebar layar secara horizontal maksimal.` }
         ]
       }],
-      config: { systemInstruction: SYSTEM_PROMPT }
+      config: { systemInstruction: SYSTEM_PROMPT, thinkingConfig: { thinkingBudget: 4000 } }
     });
     return sanitizeText(response.text || '');
   } catch (error) {
@@ -208,8 +212,8 @@ export async function analyzeKhodam(base64Image: string, name: string, birthDate
 }
 
 export async function analyzePortalEnergy(base64Image: string, locationType: string, resonanceLevel: number) {
-  const ai = getAIInstance();
   try {
+    const ai = getAIInstance();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: [{
@@ -227,8 +231,8 @@ export async function analyzePortalEnergy(base64Image: string, locationType: str
 }
 
 export async function generateCardVisual(cardName: string) {
-  const ai = getAIInstance();
   try {
+    const ai = getAIInstance();
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: { parts: [{ text: `A mystical and artistic tarot-like card illustration of ${cardName} from Indonesian mythology. High quality, intricate details, oil painting style.` }] },
@@ -241,8 +245,8 @@ export async function generateCardVisual(cardName: string) {
 }
 
 export async function analyzeFengShui(base64Image: string) {
-  const ai = getAIInstance();
   try {
+    const ai = getAIInstance();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: [{
@@ -279,8 +283,8 @@ export async function analyzeFengShui(base64Image: string) {
 }
 
 export async function detectMysticalEnergy(base64Image: string, extraPrompt: string) {
-  const ai = getAIInstance();
   try {
+    const ai = getAIInstance();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: [{
@@ -296,8 +300,8 @@ export async function detectMysticalEnergy(base64Image: string, extraPrompt: str
 }
 
 export async function generateMysticalVisual(base64Image: string, textResult: string) {
-  const ai = getAIInstance();
   try {
+    const ai = getAIInstance();
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: {
@@ -319,8 +323,8 @@ export async function getMysticalProtection(name: string, condition: string) {
 }
 
 export async function searchCultureDiscovery(query: string) {
-  const ai = getAIInstance();
   try {
+    const ai = getAIInstance();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: query,
@@ -334,8 +338,8 @@ export async function searchCultureDiscovery(query: string) {
 }
 
 export async function generateResultIllustration(text: string, title: string) {
-  const ai = getAIInstance();
   try {
+    const ai = getAIInstance();
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: { parts: [{ text: `An artistic and spiritual illustration representing: ${title}. Based on this theme: ${text}. Sundanese / Indonesian aesthetic, high quality.` }] },
@@ -348,8 +352,8 @@ export async function generateResultIllustration(text: string, title: string) {
 }
 
 export async function generateAksaraArt(aksaraType: string, text: string) {
-  const ai = getAIInstance();
   try {
+    const ai = getAIInstance();
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: { parts: [{ text: `A beautiful calligraphy art of ${aksaraType} for the text "${text}". Artistic background, ancient scroll style, gold and black theme.` }] },
@@ -362,8 +366,8 @@ export async function generateAksaraArt(aksaraType: string, text: string) {
 }
 
 export async function generateKhodamVisual(base64Image: string, analysis: string) {
-  const ai = getAIInstance();
   try {
+    const ai = getAIInstance();
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: {
@@ -381,14 +385,14 @@ export async function generateKhodamVisual(base64Image: string, analysis: string
 }
 
 export async function generateAncientRitual(category: string, name: string, targetName: string, targetBirthDate: string, targetParent: string, notes: string, base64Image: string) {
-  const ai = getAIInstance();
   try {
+    const ai = getAIInstance();
     const textPrompt = `Susunlah risalah ritual kuno kategori ${category} untuk ${name} yang ditujukan kepada ${targetName} (lahir ${targetBirthDate}, anak dari ${targetParent}). Catatan: ${notes}. Sampaikan secara puitis waskita.`;
     
     const textResponse = await ai.models.generateContent({
       model: "gemini-3-pro-preview",
       contents: textPrompt,
-      config: { systemInstruction: SYSTEM_PROMPT }
+      config: { systemInstruction: SYSTEM_PROMPT, thinkingConfig: { thinkingBudget: 4000 } }
     });
     
     const analysisText = sanitizeText(textResponse.text || '');
@@ -416,8 +420,8 @@ export async function generateAncientRitual(category: string, name: string, targ
 }
 
 export async function visualizePortalEntity(base64Image: string, analysis: string) {
-  const ai = getAIInstance();
   try {
+    const ai = getAIInstance();
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: {
@@ -440,8 +444,8 @@ export async function generateBalaRitual(analysis: string) {
 }
 
 export async function generateRajahVisual(ritualText: string) {
-  const ai = getAIInstance();
   try {
+    const ai = getAIInstance();
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: { 
@@ -458,8 +462,8 @@ export async function generateRajahVisual(ritualText: string) {
 }
 
 export async function communicateWithEntity(context: string, message: string) {
-  const ai = getAIInstance();
   try {
+    const ai = getAIInstance();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: `Berperanlah sebagai entitas ghaib yang terdeteksi: ${context}. Balaslah pesan ini dengan gaya misterius and waskita: "${message}". Singkat saja.`,
