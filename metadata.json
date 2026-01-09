@@ -1,0 +1,9 @@
+{
+  "name": "Copy of GALURA LUGAY KANCANA V1",
+  "description": "Platform Warisan Digital & Komputasi Kosmologis untuk kearifan purba Pasundan, manuskrip Pajajaran, dan algoritma tradisional Sunda.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}
