@@ -51,10 +51,7 @@ export async function getCulturalSynthesis(prompt: string) {
     return sanitizeText(response.text || '');
   } catch (error: any) {
     console.error(error);
-    if (error.message.includes("404") || error.message.includes("not found")) {
-      return "Kunci akses tidak dikenali oleh jagat raya. Sila periksa kembali API Key Anda.";
-    }
-    return "Jagat Sagala sedang mengalami gangguan frekuensi batin. Pastikan kunci aktivasi Anda valid.";
+    throw error;
   }
 }
 
@@ -97,7 +94,7 @@ export async function analyzePalmistry(base64Image: string) {
     });
     return sanitizeText(response.text || 'Gagal merajut makna rajah batin.');
   } catch (error) {
-    return "Sinyal batin terputus dalam kabut Parahyangan. Periksa aktivasi kunci Anda.";
+    throw error;
   }
 }
 
@@ -116,7 +113,7 @@ export async function analyzeFaceReading(base64Image: string, name: string, birt
     });
     return sanitizeText(response.text || '');
   } catch (error) {
-    return "Gagal membaca paras batin. Pastikan kunci aktivasi valid.";
+    throw error;
   }
 }
 
@@ -129,7 +126,7 @@ export async function getDreamInterpretation(dream: string) {
       config: { systemInstruction: SYSTEM_PROMPT }
     });
     return sanitizeText(response.text || '');
-  } catch (error) { return "Mimpi tertutup kabut ghaib."; }
+  } catch (error) { throw error; }
 }
 
 export async function generateAmalan(category: string, hajat: string) {
@@ -141,7 +138,7 @@ export async function generateAmalan(category: string, hajat: string) {
       config: { systemInstruction: SYSTEM_PROMPT, thinkingConfig: { thinkingBudget: 4000 } }
     });
     return sanitizeText(response.text || '');
-  } catch (error) { return "Gagal mengolah risalah amalan."; }
+  } catch (error) { throw error; }
 }
 
 export async function analyzeAura(base64Image: string, name: string) {
@@ -158,7 +155,7 @@ export async function analyzeAura(base64Image: string, name: string) {
       config: { systemInstruction: SYSTEM_PROMPT }
     });
     return sanitizeText(response.text || '');
-  } catch (error) { return "Gagal memindai aura."; }
+  } catch (error) { throw error; }
 }
 
 export async function generateHealingProtocol(name: string, condition: string, type: string) {
@@ -170,7 +167,7 @@ export async function generateHealingProtocol(name: string, condition: string, t
       config: { systemInstruction: SYSTEM_PROMPT, thinkingConfig: { thinkingBudget: 4000 } }
     });
     return sanitizeText(response.text || '');
-  } catch (error) { return "Gagal meramu penawar."; }
+  } catch (error) { throw error; }
 }
 
 export async function analyzeHandwriting(base64Image: string) {
@@ -188,7 +185,7 @@ export async function analyzeHandwriting(base64Image: string) {
     });
     return sanitizeText(response.text || '');
   } catch (error) {
-    return "Gagal membaca serat batin.";
+    throw error;
   }
 }
 
@@ -196,18 +193,19 @@ export async function analyzeKhodam(base64Image: string, name: string, birthDate
   try {
     const ai = getAIInstance();
     const response = await ai.models.generateContent({
-      model: "gemini-3-pro-preview",
+      model: "gemini-3-flash-preview",
       contents: [{
         parts: [
           { inlineData: { data: base64Image, mimeType: "image/jpeg" } },
-          { text: `Singkap tabir Khodam pendamping untuk ${name}, lahir ${birthDate}, anak dari ${motherName}. Pindai aura pada citra and hubungkan dengan sanad leluhur. Penuhi lebar layar secara horizontal maksimal.` }
+          { text: `Singkap tabir Khodam pendamping untuk ${name}, lahir ${birthDate}, anak dari ${motherName}. Pindai aura pada citra and hubungkan dengan sanad leluhur Pasundan. Sebutkan nama entitas khodamnya (misal: Maung Bodas, Eyang Raksa, dsb). Penuhi lebar layar secara horizontal maksimal.` }
         ]
       }],
-      config: { systemInstruction: SYSTEM_PROMPT, thinkingConfig: { thinkingBudget: 4000 } }
+      config: { systemInstruction: SYSTEM_PROMPT }
     });
     return sanitizeText(response.text || '');
   } catch (error) {
-    return "Gagal menyingkap khodam.";
+    console.error("Khodam Analysis Error:", error);
+    throw error;
   }
 }
 
@@ -226,7 +224,7 @@ export async function analyzePortalEnergy(base64Image: string, locationType: str
     });
     return sanitizeText(response.text || '');
   } catch (error) {
-    return "Portal tertutup rapat.";
+    throw error;
   }
 }
 
@@ -279,7 +277,7 @@ export async function analyzeFengShui(base64Image: string) {
       }
     });
     return JSON.parse(response.text || '{}');
-  } catch (e) { return { analysisText: 'Gagal menganalisis tata ruang.', zones: [] }; }
+  } catch (e) { throw e; }
 }
 
 export async function detectMysticalEnergy(base64Image: string, extraPrompt: string) {
@@ -296,7 +294,7 @@ export async function detectMysticalEnergy(base64Image: string, extraPrompt: str
       config: { systemInstruction: SYSTEM_PROMPT }
     });
     return sanitizeText(response.text || '');
-  } catch (e) { return 'Gagal memindai dimensi.'; }
+  } catch (e) { throw e; }
 }
 
 export async function generateMysticalVisual(base64Image: string, textResult: string) {
@@ -373,7 +371,7 @@ export async function generateKhodamVisual(base64Image: string, analysis: string
       contents: {
         parts: [
           { inlineData: { data: base64Image, mimeType: 'image/jpeg' } },
-          { text: `Create a mystical oil painting style illustration of the Khodam entity described here: ${analysis}. The entity should appear as a spectral presence alongside the person.` }
+          { text: `Create a mystical oil painting style illustration of the specific Khodam entity described in this analysis: ${analysis}. The entity should appear as a translucent spectral presence alongside the person in the image. Atmosphere should be ancient and powerful.` }
         ]
       }
     });
@@ -416,7 +414,7 @@ export async function generateAncientRitual(category: string, name: string, targ
     }
     
     return { analysisText, visualUrl };
-  } catch (e) { return { analysisText: 'Gagal meramu ritual.', visualUrl: null }; }
+  } catch (e) { throw e; }
 }
 
 export async function visualizePortalEntity(base64Image: string, analysis: string) {

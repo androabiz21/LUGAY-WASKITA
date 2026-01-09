@@ -29,7 +29,7 @@ const KhodamCheckView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ on
       if (videoRef.current) videoRef.current.srcObject = stream;
     } catch (err) {
       setIsCameraActive(false);
-      alert("Gagal mengakses kamera.");
+      alert("Gagal mengakses kamera. Mohon pastikan izin kamera diberikan.");
     }
   };
 
@@ -87,12 +87,25 @@ const KhodamCheckView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ on
     
     try {
       const base64Data = image.split(',')[1];
+      
+      // Tahap 1: Analisis Teks (Wajib Berhasil)
       const resultText = await analyzeKhodam(base64Data, name, birthDate, motherName);
+      if (!resultText || resultText.length < 10) {
+        throw new Error("Gagal menyingkap sanad khodam. Sila coba kembali.");
+      }
       setAnalysis(resultText);
-      const visualUrl = await generateKhodamVisual(base64Data, resultText);
-      setKhodamVisual(visualUrl);
+      
+      // Tahap 2: Visualisasi (Opsional/Async)
+      try {
+        const visualUrl = await generateKhodamVisual(base64Data, resultText);
+        setKhodamVisual(visualUrl);
+      } catch (visualErr) {
+        console.error("Visual generation failed, continuing with text only:", visualErr);
+      }
+
     } catch (err: any) {
-      alert(err.message || "Gagal menyingkap tabir.");
+      console.error(err);
+      alert(err.message || "Gerbang batin tertutup kabut. Pastikan kunci aktivasi valid and coba lagi.");
     } finally {
       setLoading(false);
     }
@@ -102,7 +115,7 @@ const KhodamCheckView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ on
     if (!khodamVisual) return;
     const link = document.createElement('a');
     link.href = khodamVisual;
-    link.download = `Kartu_Khodam_${name}.png`;
+    link.download = `Kartu_Khodam_${name.replace(/\s+/g, '_')}.png`;
     link.click();
   };
 
@@ -272,7 +285,7 @@ const KhodamCheckView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ on
               {!analysis && !loading && (
                 <div className="h-full flex flex-col items-center justify-center text-stone-700 space-y-6 opacity-40 italic py-20 px-6">
                   <div className="w-24 h-32 border-2 border-stone-800 rounded-3xl border-dashed flex items-center justify-center">
-                    <Sparkles size={32} />
+                    <Layers size={32} />
                   </div>
                   <p className="font-heritage italic text-lg text-center">Menanti pemancaran dari cermin batin...</p>
                 </div>
@@ -291,26 +304,31 @@ const KhodamCheckView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ on
               {analysis && (
                 <div className="space-y-10 animate-in fade-in duration-1000 w-full px-0">
                   {khodamVisual && (
-                    <div className="p-1 bg-stone-900 border border-stone-800 md:rounded-[32px] overflow-hidden shadow-2xl mx-0 md:mx-0 flex flex-col">
-                       <img src={khodamVisual} alt="Lukisan Kartu Khodam" className="w-full aspect-[3/4] md:aspect-[4/5] object-cover rounded-none md:rounded-[24px] brightness-75 grayscale-[0.2]" />
-                       <div className="p-6 text-center border-t border-stone-800 bg-stone-950 flex justify-between items-center">
-                          <div className="text-left">
-                            <p className="text-[9px] font-black uppercase tracking-[0.3em] text-amber-500">Lukisan Cat Minyak AI</p>
-                            <p className="text-[8px] text-stone-500 italic">Kartu Keramat Lebar</p>
-                          </div>
-                          <button 
-                            onClick={handleDownload}
-                            className="flex items-center gap-2 px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-stone-950 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg transition-all active:scale-95"
-                          >
-                            <Download size={14} /> SIMPAN KARTU
-                          </button>
-                       </div>
+                    <div className="px-4 md:px-0 animate-in zoom-in duration-1000">
+                      <div className="p-1 bg-stone-900 border border-stone-800 md:rounded-[32px] overflow-hidden shadow-2xl mx-0 md:mx-0 flex flex-col">
+                         <img src={khodamVisual} alt="Lukisan Kartu Khodam" className="w-full aspect-[3/4] md:aspect-[4/5] object-cover rounded-none md:rounded-[24px] brightness-75 grayscale-[0.2]" />
+                         <div className="p-6 text-center border-t border-stone-800 bg-stone-950 flex justify-between items-center">
+                            <div className="text-left">
+                              <p className="text-[9px] font-black uppercase tracking-[0.3em] text-amber-500">Lukisan Cat Minyak AI</p>
+                              <p className="text-[8px] text-stone-500 italic">Kartu Keramat Lebar</p>
+                            </div>
+                            <button 
+                              onClick={handleDownload}
+                              className="flex items-center gap-2 px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-stone-950 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg transition-all active:scale-95"
+                            >
+                              <Download size={14} /> SIMPAN KARTU
+                            </button>
+                         </div>
+                      </div>
                     </div>
                   )}
                   
-                  <div className="text-stone-100 text-lg md:text-3xl leading-relaxed italic text-justify whitespace-pre-wrap bg-stone-900/50 p-6 md:p-20 border-y md:border md:rounded-[40px] border-stone-800 shadow-inner w-full font-medium">
-                    {analysis}
+                  <div className="px-4 md:px-0">
+                    <div className="text-stone-100 text-lg md:text-3xl leading-relaxed italic text-justify whitespace-pre-wrap bg-stone-900/50 p-6 md:p-20 border-y md:border md:rounded-[40px] border-stone-800 shadow-inner w-full font-medium">
+                      {analysis}
+                    </div>
                   </div>
+                  
                   <div className="px-6 pb-10">
                     <ShareResult title="Risalah Kartu Lukisan Khodam" text={analysis} context={`Sanad: ${name}`} />
                   </div>
