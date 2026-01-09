@@ -22,18 +22,18 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onEnter }) => {
     e.preventDefault();
     if (!userName || !apiKey) return;
 
-    // Simpan ke localStorage untuk kenyamanan sesi berikutnya
-    localStorage.setItem('waskita_user', userName);
-    localStorage.setItem('waskita_key', apiKey);
+    const trimmedKey = apiKey.trim();
+    localStorage.setItem('waskita_user', userName.trim());
+    localStorage.setItem('waskita_key', trimmedKey);
     
-    // Suntikkan ke environment window agar terbaca oleh layanan AI
-    (window as any).process.env.API_KEY = apiKey;
+    // Suntikkan ke environment window secara dinamis
+    (window as any).process.env.API_KEY = trimmedKey;
     
     setIsWelcoming(true);
 
     setTimeout(() => {
       setIsVisible(false);
-      setTimeout(() => onEnter({ userName }), 800);
+      setTimeout(() => onEnter({ userName: userName.trim() }), 800);
     }, 2500);
   };
 
