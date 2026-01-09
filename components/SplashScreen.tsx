@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Sparkles, Shield, ChevronRight, Zap, User, Key, Info, Loader2, CreditCard, Lock } from 'lucide-react';
+import { Sparkles, ChevronRight, Zap, User, Key, Info, Loader2, Lock } from 'lucide-react';
 
 interface SplashScreenProps {
   onEnter: (config: { userName: string }) => void;
@@ -11,51 +11,30 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onEnter }) => {
   const [showContent, setShowContent] = useState(false);
   const [isWelcoming, setIsWelcoming] = useState(false);
   const [userName, setUserName] = useState(localStorage.getItem('waskita_user') || '');
-  const [hasKey, setHasKey] = useState(false);
-  const [checkingKey, setCheckingKey] = useState(true);
+  const [apiKey, setApiKey] = useState(localStorage.getItem('waskita_key') || '');
 
   useEffect(() => {
     const timer = setTimeout(() => setShowContent(true), 500);
-    
-    const checkApiKey = async () => {
-      try {
-        if ((window as any).aistudio?.hasSelectedApiKey) {
-          const selected = await (window as any).aistudio.hasSelectedApiKey();
-          setHasKey(selected);
-        }
-      } catch (e) {
-        console.warn("Key check failed", e);
-      } finally {
-        setCheckingKey(false);
-      }
-    };
-
-    checkApiKey();
     return () => clearTimeout(timer);
   }, []);
 
-  const handleSelectKey = async () => {
-    try {
-      if ((window as any).aistudio?.openSelectKey) {
-        await (window as any).aistudio.openSelectKey();
-        setHasKey(true); // Asumsi sukses sesuai instruksi mitigasi race condition
-      }
-    } catch (e) {
-      console.error("Failed to open key selector", e);
-    }
-  };
-
   const handleStart = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userName) return;
+    if (!userName || !apiKey) return;
 
+    // Simpan identitas ke local storage
     localStorage.setItem('waskita_user', userName);
+    localStorage.setItem('waskita_key', apiKey);
+    
+    // Suntikkan API Key ke environment runtime
+    (window as any).process.env.API_KEY = apiKey;
+    
     setIsWelcoming(true);
 
     setTimeout(() => {
       setIsVisible(false);
       setTimeout(() => onEnter({ userName }), 800);
-    }, 4000);
+    }, 3500);
   };
 
   return (
@@ -70,21 +49,21 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onEnter }) => {
         
         {!isWelcoming ? (
           <div className="w-full flex flex-col items-center animate-in fade-in zoom-in duration-700">
-            <div className="w-20 h-20 md:w-24 md:h-24 bg-blue-600 rounded-[30%] flex items-center justify-center text-white text-4xl md:text-5xl font-bold shadow-[0_0_50px_rgba(37,99,235,0.4)] mb-6 animate-pulse">
+            <div className="w-20 h-20 bg-blue-600 rounded-[30%] flex items-center justify-center text-white text-4xl font-bold shadow-[0_0_50px_rgba(37,99,235,0.4)] mb-8 animate-pulse">
               G
             </div>
 
-            <div className="space-y-2 mb-8">
-              <h1 className="font-heritage text-3xl md:text-5xl font-bold text-white tracking-tighter leading-none">
+            <div className="space-y-2 mb-10">
+              <h1 className="font-heritage text-4xl md:text-6xl font-bold text-white tracking-tighter leading-none uppercase">
                 GALURA <br/>
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-700 italic text-glow-amber">
                   LUGAY KANCANA
                 </span>
               </h1>
-              <p className="text-[10px] uppercase tracking-[0.5em] font-black text-blue-500">Waskita Pasundan v3.5</p>
+              <p className="text-[10px] uppercase tracking-[0.5em] font-black text-blue-500">Waskita Pasundan Digital</p>
             </div>
 
-            <form onSubmit={handleStart} className="w-full max-w-md space-y-4 bg-stone-900/40 p-8 rounded-[32px] border border-stone-800 backdrop-blur-xl shadow-2xl">
+            <form onSubmit={handleStart} className="w-full max-w-md space-y-5 bg-stone-900/40 p-8 md:p-10 rounded-[40px] border border-stone-800 backdrop-blur-xl shadow-2xl">
               <div className="space-y-2 text-left">
                 <label className="text-[9px] font-black text-stone-500 uppercase tracking-widest flex items-center gap-2 px-1">
                   <User size={12} className="text-blue-500" /> Nama Inohong (User)
@@ -95,54 +74,41 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onEnter }) => {
                   value={userName}
                   onChange={(e) => setUserName(e.target.value)}
                   placeholder="Masukkan nama Anda..."
-                  className="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-3 text-sm text-white focus:border-blue-600 outline-none transition-all placeholder:text-stone-800 font-bold"
+                  className="w-full bg-stone-950 border border-stone-800 rounded-2xl px-5 py-4 text-sm text-white focus:border-blue-600 outline-none transition-all placeholder:text-stone-800 font-bold shadow-inner"
                 />
               </div>
 
-              <div className="space-y-3 pt-2">
-                {!hasKey ? (
-                  <button 
-                    type="button"
-                    onClick={handleSelectKey}
-                    className="w-full flex items-center justify-center gap-3 bg-stone-800 hover:bg-stone-700 text-amber-500 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all border border-stone-700 hover:border-amber-600/50"
-                  >
-                    <Key size={14} />
-                    HUBUNGKAN KUNCI WASKITA (API KEY)
-                  </button>
-                ) : (
-                  <div className="w-full flex items-center justify-center gap-3 bg-emerald-900/20 text-emerald-500 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest border border-emerald-900/30">
-                    <Lock size={14} />
-                    KUNCI TERHUBUNG
-                  </div>
-                )}
-                
-                <a 
-                  href="https://ai.google.dev/gemini-api/docs/billing" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-[8px] text-stone-500 hover:text-blue-400 flex items-center justify-center gap-1 transition-colors italic"
-                >
-                  <CreditCard size={10} /> Periksa Status Penagihan (Wajib Akun GCP Berbayar)
-                </a>
+              <div className="space-y-2 text-left">
+                <label className="text-[9px] font-black text-stone-500 uppercase tracking-widest flex items-center gap-2 px-1">
+                  <Key size={12} className="text-amber-500" /> Kunci Waskita (API Key)
+                </label>
+                <input 
+                  type="password" 
+                  required
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  placeholder="Masukkan Kunci API..."
+                  className="w-full bg-stone-950 border border-stone-800 rounded-2xl px-5 py-4 text-sm text-white focus:border-amber-600 outline-none transition-all placeholder:text-stone-800 font-mono shadow-inner"
+                />
               </div>
 
               <button 
                 type="submit"
-                disabled={!hasKey || !userName}
-                className="w-full group relative flex items-center justify-center pt-4 disabled:opacity-30 disabled:grayscale"
+                disabled={!userName || !apiKey}
+                className="w-full group relative flex items-center justify-center pt-4 disabled:opacity-30"
               >
                 <div className="absolute inset-0 bg-blue-600 blur-2xl opacity-10 group-hover:opacity-30 transition-opacity rounded-full" />
-                <div className="relative w-full flex items-center justify-center gap-3 bg-blue-600 hover:bg-blue-500 text-stone-950 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 shadow-xl shadow-blue-900/20">
-                  <Zap size={14} className="fill-current" />
+                <div className="relative w-full flex items-center justify-center gap-3 bg-stone-100 hover:bg-white text-stone-950 py-5 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all active:scale-95 shadow-xl">
+                  <Zap size={16} className="fill-blue-600 text-blue-600" />
                   BUKA GERBANG WASKITA
-                  <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                  <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
                 </div>
               </button>
 
               <div className="pt-4 flex items-start gap-2 text-left opacity-40">
                 <Info size={12} className="shrink-0 mt-0.5 text-blue-400" />
                 <p className="text-[8px] text-stone-400 leading-relaxed italic">
-                  Identitas and Kunci Waskita diperlukan untuk menyelaraskan frekuensi terawangan batin dan generasi visual spiritual resolusi tinggi.
+                  Identitas and Kunci diperlukan untuk menyelaraskan frekuensi terawangan batin dan generasi visual spiritual. Kunci Anda tersimpan aman di perangkat ini.
                 </p>
               </div>
             </form>
@@ -161,14 +127,10 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onEnter }) => {
               </h2>
             </div>
 
-            <div className="max-w-2xl mx-auto space-y-6">
-              <p className="text-blue-500 text-[10px] md:text-xs font-black uppercase tracking-[0.5em] animate-pulse">Wilujeng Sumping di Galura Lugay Kancana</p>
-              <div className="p-10 bg-stone-900/40 border border-stone-800 rounded-[40px] backdrop-blur-md shadow-2xl relative overflow-hidden group">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-600 to-transparent opacity-50" />
-                <p className="text-stone-300 text-lg md:text-2xl leading-relaxed italic font-medium">
-                  "Sebuah gerbang digital menuju kearifan purba Pasundan, di mana teknologi masa depan bersenyawa dengan sanad kebudayaan Tatar Sunda."
-                </p>
-              </div>
+            <div className="max-w-2xl mx-auto p-10 bg-stone-900/40 border border-stone-800 rounded-[40px] backdrop-blur-md shadow-2xl">
+              <p className="text-stone-300 text-xl md:text-2xl leading-relaxed italic font-medium">
+                "Teknologi masa depan kini bersenyawa dengan sanad kearifan purba Tatar Sunda. Sila masuk ke jagat waskita."
+              </p>
             </div>
 
             <div className="flex flex-col items-center gap-4 pt-8 opacity-60">
