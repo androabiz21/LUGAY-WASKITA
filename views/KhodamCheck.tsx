@@ -12,6 +12,7 @@ const KhodamCheckView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ on
   const [image, setImage] = useState<string | null>(null);
   const [khodamVisual, setKhodamVisual] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isVisualizing, setIsVisualizing] = useState(false);
   const [analysis, setAnalysis] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
@@ -54,11 +55,9 @@ const KhodamCheckView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ on
     if (videoRef.current && canvasRef.current) {
       const context = canvasRef.current.getContext('2d');
       if (context) {
-        // Capture at 640px width to balance quality and API limits
         canvasRef.current.width = 640;
         canvasRef.current.height = (videoRef.current.videoHeight / videoRef.current.videoWidth) * 640;
         context.drawImage(videoRef.current, 0, 0, canvasRef.current.width, canvasRef.current.height);
-        // Standard quality JPEG
         setImage(canvasRef.current.toDataURL('image/jpeg', 0.8));
         stopCamera();
       }
@@ -96,30 +95,32 @@ const KhodamCheckView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ on
     setAnalysis('');
     setKhodamVisual(null);
     setError(null);
+    setIsVisualizing(false);
     
     try {
       const base64Data = image.split(',')[1];
       
-      // Step 1: Text analysis
       const resultText = await analyzeKhodam(base64Data, name, birthDate, motherName);
       if (!resultText) throw new Error("Gagal menyingkap sanad khodam.");
       setAnalysis(resultText);
       
-      // Step 2: Visualization (Safe handling for potential filter blocks)
+      setIsVisualizing(true);
       try {
         const visualUrl = await generateKhodamVisual(base64Data, resultText);
         if (visualUrl) {
           setKhodamVisual(visualUrl);
         } else {
-          console.warn("Visual generation returned null, possibly blocked by safety filters.");
+          console.warn("Visual generation returned null.");
         }
       } catch (visualErr) {
-        console.warn("Image generation failed, but text result is preserved.");
+        console.warn("Image generation failed.");
+      } finally {
+        setIsVisualizing(false);
       }
 
     } catch (err: any) {
       console.error(err);
-      setError(err.message || "Tirai batin tertutup kabut. Pastikan koneksi atau sanad batin Anda valid.");
+      setError(err.message || "Tirai batin tertutup kabut.");
     } finally {
       setLoading(false);
     }
@@ -212,9 +213,17 @@ const KhodamCheckView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ on
 
         <div className="space-y-6 px-0">
           <div className="p-0 md:p-12 glass-panel md:rounded-[60px] border-y md:border border-stone-800 bg-stone-900/30 min-h-[500px] flex flex-col shadow-2xl">
-            <div className="flex items-center gap-3 text-amber-500 mb-8 border-b border-stone-800 pb-6 pt-8 px-6 md:pt-0 md:px-0 relative z-10">
-              <Flame size={24} className="animate-pulse" />
-              <h3 className="font-heritage text-xl md:text-2xl font-bold uppercase tracking-wider">Manifestasi Batin</h3>
+            <div className="flex items-center justify-between border-b border-stone-800 pb-6 pt-8 px-6 md:pt-0 md:px-0 relative z-10">
+              <div className="flex items-center gap-3 text-amber-500">
+                <Flame size={24} className="animate-pulse" />
+                <h3 className="font-heritage text-xl md:text-2xl font-bold uppercase tracking-wider">Manifestasi Batin</h3>
+              </div>
+              {isVisualizing && (
+                <div className="flex items-center gap-2 px-3 py-1 bg-amber-600/20 rounded-full border border-amber-600/30 animate-pulse">
+                  <Loader2 size={10} className="animate-spin text-amber-500" />
+                  <span className="text-[8px] font-black text-amber-500 uppercase tracking-widest">Menenun Ilustrasi...</span>
+                </div>
+              )}
             </div>
             
             <div className="flex-1 overflow-y-auto relative z-10">
@@ -225,7 +234,7 @@ const KhodamCheckView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ on
                 </div>
               )}
 
-              {loading && (
+              {loading && !analysis && (
                 <div className="h-full flex flex-col items-center justify-center space-y-8 py-20 px-6 text-center">
                   <div className="relative"><div className="w-24 h-24 border-2 border-amber-900 rounded-full animate-ping"></div><Flame className="absolute inset-0 m-auto text-amber-600 animate-pulse" size={40} /></div>
                   <p className="text-amber-600 font-heritage italic text-xl animate-pulse">Melukis sanad energi...</p>
@@ -240,11 +249,18 @@ const KhodamCheckView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ on
                          <img src={khodamVisual} alt="Lukisan Kartu Khodam" className="w-full aspect-[3/4] md:aspect-[4/5] object-cover rounded-none md:rounded-[24px] brightness-75 transition-all duration-1000" />
                          <div className="p-6 text-center border-t border-stone-800 bg-stone-950 flex justify-between items-center">
                             <div className="text-left">
-                              <p className="text-[9px] font-black uppercase tracking-[0.3em] text-amber-500">Lukisan Minyak Waskita AI</p>
-                              <p className="text-[8px] text-stone-500 italic mt-1">Kartu Manifestasi Batin</p>
+                              <p className="text-[9px] font-black uppercase tracking-[0.3em] text-amber-500">Lukisan Waskita AI</p>
+                              <p className="text-[8px] text-stone-500 italic mt-1">Manifestasi Batin</p>
                             </div>
                             <button onClick={handleDownload} className="flex items-center gap-2 px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-stone-950 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg transition-all active:scale-95"><Download size={14} /> SIMPAN</button>
                          </div>
+                      </div>
+                    </div>
+                  ) : isVisualizing ? (
+                    <div className="px-4 md:px-0">
+                      <div className="aspect-[3/4] md:aspect-[4/5] bg-stone-950/50 md:rounded-[32px] border border-stone-800 border-dashed flex flex-col items-center justify-center space-y-4">
+                         <Loader2 className="animate-spin text-amber-600" size={32} />
+                         <p className="text-amber-600/60 font-heritage italic text-sm">Menata dimensi visual batin...</p>
                       </div>
                     </div>
                   ) : !loading && (
@@ -252,7 +268,7 @@ const KhodamCheckView: React.FC<{ onNavigate: (view: AppView) => void }> = ({ on
                        <div className="p-6 bg-amber-950/20 border border-amber-900/30 rounded-3xl flex gap-4 items-center">
                           <AlertCircle size={24} className="text-amber-600 shrink-0" />
                           <p className="text-[10px] text-stone-400 italic leading-relaxed">
-                            Visi visual sedang tertutup kabut dimensi (Safety Filter). Namun risalah tertulis tetap dapat Anda baca di bawah ini.
+                            Visi visual batin sedang tertutup kabut dimensi (Safety Filter). Risalah tertulis tetap tersedia di bawah ini sebagai panduan utama Anda.
                           </p>
                        </div>
                     </div>
