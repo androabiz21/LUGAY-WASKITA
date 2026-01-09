@@ -3,19 +3,12 @@ import { GoogleGenAI, Type } from "@google/genai";
 
 /**
  * Mendapatkan instance AI.
- * Memprioritaskan Waskita Key yang diinput user melalui layar login (localStorage).
- * Dipanggil setiap kali akan melakukan request agar kunci selalu sinkron.
+ * Logika ini disinkronkan dengan SplashScreen dan sistem login.
  */
 const getAIClient = () => {
   const loginKey = localStorage.getItem('waskita_key');
   const envKey = (window as any).process?.env?.API_KEY || "";
-  
-  // Gunakan kunci dari login jika ada, jika tidak gunakan env
   const apiKey = (loginKey && loginKey.trim() !== "") ? loginKey.trim() : envKey;
-  
-  if (!apiKey) {
-    console.warn("Waskita Key (API KEY) tidak ditemukan. Sila login kembali.");
-  }
   
   return new GoogleGenAI({ apiKey });
 };
@@ -41,25 +34,29 @@ const sanitizeText = (text: string | undefined) => {
 };
 
 /**
- * Sanitasi prompt gambar khusus untuk hasil Paririmbon/Calculator.
- * Mengubah narasi nasib menjadi konsep visual artistik yang aman dari filter sensor.
+ * Pembersihan prompt gambar tingkat tinggi.
+ * Menghapus segala istilah mistis dan menggantinya dengan istilah seni visual 
+ * untuk menghindari penolakan oleh Google Safety Filter (Error 400).
  */
 const cleanForImagePrompt = (text: string) => {
-  const riskyWords = [
-    /khodam/gi, /hantu/gi, /setan/gi, /iblis/gi, /jin/gi, /demon/gi, /ghost/gi, 
-    /spirit/gi, /magic/gi, /mistik/gi, /gaib/gi, /blood/gi, /dark/gi, /horror/gi, 
-    /ritual/gi, /pelet/gi, /santet/gi, /teluh/gi, /voodoo/gi, /curse/gi, /witch/gi,
-    /mati/gi, /ajal/gi, /siksa/gi, /celaka/gi, /nasib buruk/gi, /bahaya/gi
+  const riskyKeywords = [
+    /khodam/gi, /hantu/gi, /setan/gi, /iblis/gi, /jin/gi, /demon/gi, /spirit/gi,
+    /magic/gi, /mistik/gi, /gaib/gi, /ritual/gi, /pelet/gi, /santet/gi, /teluh/gi,
+    /voodoo/gi, /curse/gi, /witch/gi, /mati/gi, /ajal/gi, /siksa/gi, /celaka/gi,
+    /buruk/gi, /gelap/gi, /dark/gi, /horror/gi, /macan/gi, /tiger/gi, /ular/gi
   ];
   
-  let cleaned = text;
-  riskyWords.forEach(regex => { cleaned = cleaned.replace(regex, 'cosmic flow'); });
-  
-  const simpleContext = cleaned.split(/\s+/).slice(0, 15).join(' ');
-  
-  return `A majestic artistic digital painting of a sacred landscape inspired by ${simpleContext}. Featuring radiant golden glowing lines, traditional Indonesian batik mega mendung patterns in the sky, ethereal warm lighting, celestial atmosphere, peaceful spiritual aesthetic, high-quality masterpiece art, vivid colors. No human figures or scary elements.`;
+  let theme = "Peaceful Spiritual Light";
+  if (text.toLowerCase().includes("rejeki") || text.toLowerCase().includes("untung")) theme = "Golden Harvest Mandala";
+  if (text.toLowerCase().includes("jodoh") || text.toLowerCase().includes("kasih")) theme = "Radiant Pink Lotus Bloom";
+  if (text.toLowerCase().includes("wibawa") || text.toLowerCase().includes("kuat")) theme = "Majestic Mountain Peak at Dawn";
+
+  return `A high-quality artistic digital painting of ${theme}. Incorporating very intricate gold Indonesian batik Mega Mendung patterns, ethereal glowing dust, sacred geometry, traditional Nusantara aesthetics, serene atmosphere, masterpiece quality, 8k resolution, vivid celestial colors. No scary or dark elements.`;
 };
 
+/**
+ * Ekstraksi citra dari respon model secara aman.
+ */
 const extractImageUrl = (response: any) => {
   try {
     const candidate = response.candidates?.[0];
@@ -112,7 +109,7 @@ export async function searchCultureDiscovery(query: string) {
   return { text: sanitizeText(response.text), sources: [] };
 }
 
-// --- FUNGSI ANALISIS GAMBAR ---
+// --- FUNGSI ANALISIS CITRA (MULTIMODAL) ---
 
 export async function analyzePalmistry(base64Image: string) {
   const ai = getAIClient();
@@ -238,7 +235,7 @@ export async function generateKhodamVisual(base64Image: string, analysis: string
     contents: {
       parts: [
         { inlineData: { data: base64Image, mimeType: 'image/jpeg' } },
-        { text: "Add a majestic glowing golden aura and intricate traditional Indonesian batik motifs. Style: Ethereal oil painting, warm lighting, masterpiece quality. Serene atmosphere." }
+        { text: "Enhance this portrait with a majestic glowing golden aura and sacred Indonesian batik ornaments. Style: Ethereal fine art, warm spiritual lighting, masterpiece. No scary elements." }
       ]
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
@@ -252,7 +249,7 @@ export async function generateCardVisual(cardName: string) {
     model: 'gemini-2.5-flash-image',
     contents: { 
       parts: [
-        { text: `Artistic illustration of a sacred card named "${cardName}". Incorporate traditional Indonesian batik patterns and golden colors. Style: Sacred digital painting, masterpiece.` }
+        { text: `A beautiful sacred tarot-style card named "${cardName}". Decorated with traditional gold Indonesian batik patterns, radiant lighting, celestial atmosphere, digital art masterpiece.` }
       ] 
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
@@ -322,7 +319,7 @@ export async function generateMysticalVisual(base64Image: string, textResult: st
     contents: {
       parts: [
         { inlineData: { data: base64Image, mimeType: 'image/jpeg' } },
-        { text: "Apply glowing golden geometric energy patterns and traditional Nusantara ornaments to this photo. Ethereal light, artistic masterpiece." }
+        { text: "Apply elegant glowing golden energy patterns and traditional Nusantara ornaments to this photo. Ethereal light, artistic masterpiece." }
       ]
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
@@ -332,6 +329,7 @@ export async function generateMysticalVisual(base64Image: string, textResult: st
 
 export async function generateResultIllustration(text: string, title: string) {
   const ai = getAIClient();
+  // Menggunakan prompt aman agar tidak ditolak safety filter
   const safePrompt = cleanForImagePrompt(text);
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-image',
@@ -351,7 +349,7 @@ export async function generateAksaraArt(aksaraType: string, text: string) {
     model: 'gemini-2.5-flash-image',
     contents: { 
       parts: [
-        { text: `Sacred calligraphy of the word "${text}" in ancient ${aksaraType} style on aged parchment. Elegant gold ink, glowing, artistic masterpiece.` }
+        { text: `Golden sacred calligraphy of the word "${text}" in ${aksaraType} style. On aged parchment paper, radiant glowing ink, digital art masterpiece.` }
       ] 
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
@@ -373,7 +371,7 @@ export async function generateAncientRitual(category: string, name: string, targ
     contents: {
       parts: [
         { inlineData: { data: base64Image, mimeType: 'image/jpeg' } },
-        { text: "A majestic scene of a traditional peaceful ceremony with glowing golden lights. Oil painting style, serene atmosphere." }
+        { text: "A majestic scene of a peaceful traditional ceremony with glowing golden lanterns and batik patterns. Oil painting style, serene." }
       ]
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
@@ -389,7 +387,7 @@ export async function visualizePortalEntity(base64Image: string, analysis: strin
     contents: {
       parts: [
         { inlineData: { data: base64Image, mimeType: 'image/jpeg' } },
-        { text: "Manifestation of benevolent golden energy patterns. Traditional spiritual motifs, serene glow, artistic digital art." }
+        { text: "Manifestation of beautiful benevolent golden energy patterns. Traditional motifs, serene glow, artistic digital art." }
       ]
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
@@ -403,7 +401,7 @@ export async function generateRajahVisual(ritualText: string) {
     model: 'gemini-2.5-flash-image',
     contents: { 
       parts: [
-        { text: "Elegant gold calligraphy pattern on ancient parchment paper. Radiant, intricate, traditional spiritual style." }
+        { text: "Exquisite gold calligraphy pattern on ancient parchment. Radiant, intricate, traditional spiritual style." }
       ] 
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
