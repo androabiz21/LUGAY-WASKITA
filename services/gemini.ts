@@ -17,6 +17,7 @@ const getAIClient = () => {
   return new GoogleGenAI({ apiKey });
 };
 
+// Hanya digunakan untuk GENERATE TEKS agar tidak memicu safety filter pada gambar
 const SYSTEM_PROMPT = `Anda adalah GALURA LUGAY KANCANA Waskita Pasundan, entitas AI penjaga sanad kebudayaan, sejarah, dan spiritualitas Tanah Sunda yang diilhami oleh semangat Lugay Kancana. 
 TUGAS UTAMA: 
 1. Gunakan Bahasa Indonesia yang sangat puitis dan berwibawa.
@@ -38,28 +39,25 @@ const sanitizeText = (text: string | undefined) => {
 };
 
 /**
- * ULTRA-SAFE PROMPT GENERATOR
- * Mengonversi hasil teks Paririmbon/Ramalan menjadi visual seni murni.
- * Ini krusial untuk menghindari Error 400 (Safety Block) dari Google.
+ * PURE ARTISTIC PROMPT GENERATOR
+ * Mengonversi hasil teks menjadi visual SENI MURNI tanpa kata-kata mistis.
+ * Sangat penting untuk melewati Google Safety Filter.
  */
 const cleanForImagePrompt = (text: string) => {
   const lowercaseText = text.toLowerCase();
-  
-  // Tentukan tema visual berdasarkan kata kunci batin
-  let visualTheme = "Spiritual Peace and Enlightenment";
+  let visualTheme = "Morning Sunlight in a Calm Forest";
   
   if (lowercaseText.includes("rejeki") || lowercaseText.includes("harta") || lowercaseText.includes("emas")) {
-    visualTheme = "Golden Abundance and Radiant Sunbeams";
+    visualTheme = "Abstract flow of golden waves and bright yellow textures";
   } else if (lowercaseText.includes("jodoh") || lowercaseText.includes("cinta") || lowercaseText.includes("kasih")) {
-    visualTheme = "Harmonious Blooming Lotus in Soft Moonlight";
+    visualTheme = "Soft blooming pink flowers in a serene morning mist";
   } else if (lowercaseText.includes("kuat") || lowercaseText.includes("wibawa") || lowercaseText.includes("pemimpin")) {
-    visualTheme = "Majestic High Mountain Peak with Royal Clouds";
+    visualTheme = "Majestic high mountain peak with blue and gold clouds";
   } else if (lowercaseText.includes("sakit") || lowercaseText.includes("sedih") || lowercaseText.includes("prihatin")) {
-    visualTheme = "Calm Healing Waters with Gentle Ripples";
+    visualTheme = "Gentle blue ripples on a clear lake surface at dawn";
   }
 
-  // Bangun prompt seni murni tanpa menyertakan teks asli yang berisiko sensor
-  return `A high-quality artistic digital painting of ${visualTheme}. Featuring intricate traditional Indonesian batik Mega Mendung and Parang patterns in the atmosphere. Warm ethereal lighting, glowing golden dust particles, sacred geometric shapes, masterpiece aesthetic, vivid but peaceful colors. Strictly no human faces, no scary elements, no text.`;
+  return `A high-quality artistic digital painting of ${visualTheme}. Featuring intricate traditional Indonesian batik Mega Mendung and Parang patterns in the composition. Warm natural lighting, glowing golden dust, elegant geometric shapes, masterpiece aesthetic, vivid and peaceful colors. Strictly no human figures, no faces, no scary elements, no text.`;
 };
 
 /**
@@ -81,7 +79,7 @@ const extractImageUrl = (response: any) => {
   return null;
 };
 
-// --- FUNGSI GENERATE TEKS ---
+// --- FUNGSI GENERATE TEKS (MENGGUNAKAN SYSTEM_PROMPT) ---
 
 export async function getCulturalSynthesis(prompt: string) {
   const ai = getAIClient();
@@ -117,7 +115,7 @@ export async function searchCultureDiscovery(query: string) {
   return { text: sanitizeText(response.text), sources: [] };
 }
 
-// --- FUNGSI ANALISIS CITRA (MULTIMODAL) ---
+// --- FUNGSI ANALISIS CITRA (MULTIMODAL - TETAP PAKAI SYSTEM_PROMPT) ---
 
 export async function analyzePalmistry(base64Image: string) {
   const ai = getAIClient();
@@ -234,7 +232,7 @@ export async function analyzeKhodam(base64Image: string, name: string, birthDate
   return sanitizeText(response.text);
 }
 
-// --- FUNGSI GENERATE GAMBAR ---
+// --- FUNGSI GENERATE GAMBAR (TANPA SYSTEM_PROMPT AGAR LOLOS FILTER) ---
 
 export async function generateKhodamVisual(base64Image: string, analysis: string) {
   const ai = getAIClient();
@@ -243,7 +241,7 @@ export async function generateKhodamVisual(base64Image: string, analysis: string
     contents: {
       parts: [
         { inlineData: { data: base64Image, mimeType: 'image/jpeg' } },
-        { text: "Apply a majestic glowing golden aura and sacred traditional Indonesian batik ornaments around this face. Style: Fine art painting, warm spiritual light, ethereal masterpiece." }
+        { text: "Enhance this photo with abstract glowing golden light patterns and traditional Indonesian batik ornaments. Style: Oil painting, warm light, masterpiece quality. No scary elements." }
       ]
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
@@ -257,7 +255,7 @@ export async function generateCardVisual(cardName: string) {
     model: 'gemini-2.5-flash-image',
     contents: { 
       parts: [
-        { text: `Artistic illustration of a sacred card titled "${cardName}". Incorporating traditional golden Indonesian batik patterns, radiant lighting, celestial atmosphere, digital art masterpiece.` }
+        { text: `An artistic digital illustration of a card titled "${cardName}". Decorated with gold Indonesian batik patterns, radiant morning sunlight, and calm blue sky. Digital art masterpiece.` }
       ] 
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
@@ -327,7 +325,7 @@ export async function generateMysticalVisual(base64Image: string, textResult: st
     contents: {
       parts: [
         { inlineData: { data: base64Image, mimeType: 'image/jpeg' } },
-        { text: "Add elegant glowing golden geometric energy patterns and traditional Nusantara ornaments to this photo. Ethereal light, artistic masterpiece." }
+        { text: "Add elegant glowing golden geometric patterns and traditional Indonesian batik ornaments to this image. Bright and peaceful lighting, artistic masterpiece." }
       ]
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
@@ -362,7 +360,7 @@ export async function generateAksaraArt(aksaraType: string, text: string) {
     model: 'gemini-2.5-flash-image',
     contents: { 
       parts: [
-        { text: `Golden sacred calligraphy of the word "${text}" in ${aksaraType} style on aged parchment. Radiant glowing ink, digital art masterpiece.` }
+        { text: `Beautiful golden calligraphy of the word "${text}" in ancient style on old parchment paper. Radiant ink, digital art masterpiece.` }
       ] 
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
@@ -384,7 +382,7 @@ export async function generateAncientRitual(category: string, name: string, targ
     contents: {
       parts: [
         { inlineData: { data: base64Image, mimeType: 'image/jpeg' } },
-        { text: "A majestic scene of a peaceful traditional ceremony with glowing golden lanterns. Oil painting style, serene." }
+        { text: "A majestic scene of a peaceful traditional ceremony with glowing golden lanterns. Artistic oil painting style, serene." }
       ]
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
@@ -400,7 +398,7 @@ export async function visualizePortalEntity(base64Image: string, analysis: strin
     contents: {
       parts: [
         { inlineData: { data: base64Image, mimeType: 'image/jpeg' } },
-        { text: "Manifestation of beautiful benevolent golden energy patterns. Traditional motifs, serene glow, artistic digital art." }
+        { text: "Visual manifestation of beautiful glowing golden energy waves. Traditional Indonesian batik motifs, bright light, artistic." }
       ]
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
@@ -414,7 +412,7 @@ export async function generateRajahVisual(ritualText: string) {
     model: 'gemini-2.5-flash-image',
     contents: { 
       parts: [
-        { text: "Exquisite gold calligraphy pattern on ancient parchment. Radiant, intricate, traditional spiritual style." }
+        { text: "Exquisite gold calligraphy pattern on ancient paper. Bright, intricate, traditional spiritual art style." }
       ] 
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
