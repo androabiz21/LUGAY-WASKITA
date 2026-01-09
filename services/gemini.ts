@@ -2,18 +2,11 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
 /**
- * Mendapatkan instance AI dengan kunci terbaru dari login.
- * Logika ini sudah terbukti berhasil pada fungsi teks.
+ * Mendapatkan instance AI secara eksklusif menggunakan process.env.API_KEY.
+ * Variabel ini diperbarui oleh SplashScreen saat user login.
  */
 const getAIClient = () => {
-  const userInputKey = localStorage.getItem('waskita_key');
-  const systemKey = (window as any).process?.env?.API_KEY || "";
-  const apiKey = (userInputKey && userInputKey.trim() !== "") ? userInputKey.trim() : systemKey;
-  
-  if (!apiKey) {
-    console.error("Kunci Waskita (API KEY) belum terpasang.");
-  }
-  
+  const apiKey = process.env.API_KEY || "";
   return new GoogleGenAI({ apiKey });
 };
 
@@ -38,37 +31,47 @@ const sanitizeText = (text: string | undefined) => {
 };
 
 /**
- * Pembersihan prompt gambar sangat ketat agar tidak diblokir oleh Safety Filter Google.
- * Mengganti istilah mistis dengan istilah artistik/budaya.
+ * Sanitasi prompt gambar khusus untuk hasil Paririmbon/Calculator.
+ * Mengubah narasi nasib menjadi konsep visual artistik yang aman dari filter sensor.
  */
 const cleanForImagePrompt = (text: string) => {
+  // Kata-kata yang sering memicu Error 400 (Safety Filter)
   const riskyWords = [
     /khodam/gi, /hantu/gi, /setan/gi, /iblis/gi, /jin/gi, /demon/gi, /ghost/gi, 
     /spirit/gi, /magic/gi, /mistik/gi, /gaib/gi, /blood/gi, /dark/gi, /horror/gi, 
-    /ritual/gi, /pelet/gi, /santet/gi, /teluh/gi, /voodoo/gi, /curse/gi, /witch/gi
+    /ritual/gi, /pelet/gi, /santet/gi, /teluh/gi, /voodoo/gi, /curse/gi, /witch/gi,
+    /mati/gi, /ajal/gi, /siksa/gi, /celaka/gi, /nasib buruk/gi, /bahaya/gi
   ];
   
   let cleaned = text;
-  riskyWords.forEach(regex => { cleaned = cleaned.replace(regex, 'ethereal energy'); });
+  riskyWords.forEach(regex => { cleaned = cleaned.replace(regex, 'cosmic flow'); });
   
-  // Ambil hanya 20 kata pertama untuk menghindari prompt yang terlalu kompleks/mencurigakan
-  const coreContext = cleaned.split(/\s+/).slice(0, 20).join(' ');
+  // Ambil intisari untuk dijadikan tema lukisan
+  const simpleContext = cleaned.split(/\s+/).slice(0, 15).join(' ');
   
-  return `A peaceful artistic digital painting of ${coreContext}. Style: Traditional Indonesian batik patterns, radiant golden glowing aura, celestial atmosphere, hyper-realistic, dignified spiritual aesthetic, masterpiece quality. No dark themes.`;
+  return `A majestic artistic digital painting of a sacred landscape inspired by ${simpleContext}. Featuring radiant golden glowing lines, traditional Indonesian batik mega mendung patterns in the sky, ethereal warm lighting, celestial atmosphere, peaceful spiritual aesthetic, high-quality masterpiece art, vivid colors. No human figures or scary elements.`;
 };
 
+/**
+ * Ekstraksi gambar dari response kandidat secara aman.
+ */
 const extractImageUrl = (response: any) => {
-  if (response.candidates?.[0]?.content?.parts) {
-    for (const part of response.candidates[0].content.parts) {
-      if (part.inlineData) {
-        return `data:image/png;base64,${part.inlineData.data}`;
+  try {
+    const candidate = response.candidates?.[0];
+    if (candidate?.content?.parts) {
+      for (const part of candidate.content.parts) {
+        if (part.inlineData?.data) {
+          return `data:image/png;base64,${part.inlineData.data}`;
+        }
       }
     }
+  } catch (e) {
+    console.error("Gagal mengekstrak citra:", e);
   }
   return null;
 };
 
-// --- FUNGSI GENERATE TEKS (SUDAH BERHASIL) ---
+// --- FUNGSI GENERATE TEKS ---
 
 export async function getCulturalSynthesis(prompt: string) {
   const ai = getAIClient();
@@ -104,7 +107,7 @@ export async function searchCultureDiscovery(query: string) {
   return { text: sanitizeText(response.text), sources: [] };
 }
 
-// --- FUNGSI ANALISIS GAMBAR & EDITING ---
+// --- FUNGSI ANALISIS GAMBAR ---
 
 export async function analyzePalmistry(base64Image: string) {
   const ai = getAIClient();
@@ -221,7 +224,7 @@ export async function analyzeKhodam(base64Image: string, name: string, birthDate
   return sanitizeText(response.text);
 }
 
-// --- FUNGSI GENERATE GAMBAR (YANG AKAN DIPERBAIKI) ---
+// --- FUNGSI GENERATE GAMBAR ---
 
 export async function generateKhodamVisual(base64Image: string, analysis: string) {
   const ai = getAIClient();
@@ -230,7 +233,7 @@ export async function generateKhodamVisual(base64Image: string, analysis: string
     contents: {
       parts: [
         { inlineData: { data: base64Image, mimeType: 'image/jpeg' } },
-        { text: "Enhance this portrait with a peaceful glowing golden aura and intricate traditional Indonesian batik motifs. Style: Celestial oil painting, warm lighting, masterpiece quality. Dignified and serene atmosphere." }
+        { text: "Add a majestic glowing golden aura and intricate traditional Indonesian batik motifs. Style: Ethereal oil painting, warm lighting, masterpiece quality." }
       ]
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
@@ -244,7 +247,7 @@ export async function generateCardVisual(cardName: string) {
     model: 'gemini-2.5-flash-image',
     contents: { 
       parts: [
-        { text: `Artistic illustration of a sacred card named "${cardName}". Incorporate traditional Indonesian batik patterns and golden colors. Style: Ethereal digital painting, masterpiece.` }
+        { text: `Artistic illustration of a sacred card named "${cardName}". Incorporate traditional Indonesian batik patterns and golden colors. Style: Sacred digital painting, masterpiece.` }
       ] 
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
@@ -314,7 +317,7 @@ export async function generateMysticalVisual(base64Image: string, textResult: st
     contents: {
       parts: [
         { inlineData: { data: base64Image, mimeType: 'image/jpeg' } },
-        { text: "Apply glowing golden geometric energy patterns to this photo. Traditional Nusantara ornaments, ethereal light, artistic masterpiece." }
+        { text: "Apply glowing golden geometric energy patterns and traditional Nusantara ornaments to this photo. Ethereal light, artistic masterpiece." }
       ]
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
@@ -365,7 +368,7 @@ export async function generateAncientRitual(category: string, name: string, targ
     contents: {
       parts: [
         { inlineData: { data: base64Image, mimeType: 'image/jpeg' } },
-        { text: "A majestic scene of a traditional peaceful ceremony with glowing golden lights and sacred batik patterns. Oil painting style, serene atmosphere." }
+        { text: "A majestic scene of a traditional peaceful ceremony with glowing golden lights. Oil painting style, serene atmosphere." }
       ]
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
