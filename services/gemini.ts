@@ -25,15 +25,17 @@ const sanitizeText = (text: string) => {
 };
 
 /**
- * Membersihkan teks untuk prompt gambar agar tidak memicu safety filter
+ * Membersihkan teks untuk prompt gambar agar tidak memicu safety filter.
+ * Fokus pada istilah cahaya dan seni tradisional Nusantara.
  */
 const cleanForImagePrompt = (text: string) => {
-  const forbidden = [/santet/gi, /teluh/gi, /iblis/gi, /setan/gi, /darah/gi, /kematian/gi, /demon/gi, /devil/gi, /blood/gi, /death/gi, /curse/gi, /kutukan/gi];
+  const forbidden = [/khodam/gi, /hantu/gi, /setan/gi, /iblis/gi, /jin/gi, /siluman/gi, /spirit/gi, /ghost/gi, /demon/gi, /santet/gi, /teluh/gi, /darah/gi, /kematian/gi, /keramat/gi, /seram/gi, /scary/gi, /curse/gi];
   let cleaned = text;
   forbidden.forEach(regex => {
-    cleaned = cleaned.replace(regex, 'aura');
+    cleaned = cleaned.replace(regex, 'cahaya batin');
   });
-  return cleaned.substring(0, 150).replace(/[^\w\s]/gi, ' ');
+  // Mengambil 100 karakter pertama saja untuk menjaga fokus prompt
+  return cleaned.substring(0, 100).replace(/[^\w\s]/gi, ' ');
 };
 
 export async function getCulturalSynthesis(prompt: string) {
@@ -177,7 +179,7 @@ export async function analyzeKhodam(base64Image: string, name: string, birthDate
       contents: {
         parts: [
           { inlineData: { data: base64Image, mimeType: "image/jpeg" } },
-          { text: `Singkap tabir Khodam pendamping untuk ${name}, lahir ${birthDate}, anak dari ${motherName}. Sebutkan nama entitas khodamnya (misal: Maung Bodas, Eyang Raksa, dsb) and narasikan secara puitis Sunda Buhun. Penuhi lebar layar secara horizontal maksimal.` }
+          { text: `Singkap tabir penjaga batin untuk ${name}, lahir ${birthDate}, anak dari ${motherName}. Narasikan manifestasi energinya secara puitis Sunda Buhun. Penuhi lebar layar secara horizontal maksimal.` }
         ]
       },
       config: { systemInstruction: SYSTEM_PROMPT }
@@ -195,7 +197,7 @@ export async function analyzePortalEnergy(base64Image: string, locationType: str
       contents: {
         parts: [
           { inlineData: { data: base64Image, mimeType: "image/jpeg" } },
-          { text: `Lakukan analisis spectral portal pada lokasi ${locationType}. Identifikasi entitas yang mencoba bermanifestasi. Penuhi lebar layar.` }
+          { text: `Lakukan analisis spectral portal pada lokasi ${locationType}. Identifikasi energi yang mencoba bermanifestasi. Penuhi lebar layar.` }
         ]
       },
       config: { systemInstruction: SYSTEM_PROMPT }
@@ -208,7 +210,7 @@ export async function generateCardVisual(cardName: string) {
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
-      contents: { parts: [{ text: `A mystical and artistic tarot card illustration of ${cardName} from Nusantara mythology. High quality, oil painting style, masterpiece.` }] },
+      contents: { parts: [{ text: `A beautiful and artistic tarot card illustration of "${cardName}" in Indonesian traditional batik style. Masterpiece digital painting, oil painting texture, glowing colors, symmetry.` }] },
       config: {
         imageConfig: { aspectRatio: "1:1" }
       }
@@ -286,11 +288,11 @@ export async function generateMysticalVisual(base64Image: string, textResult: st
       contents: {
         parts: [
           { inlineData: { data: base64Image, mimeType: 'image/jpeg' } },
-          { text: `Enhance this photo with ethereal mystical effects, glowing spiritual energy, and ancient Nusantara patterns based on: ${cleanContext}. Masterpiece, cinematic lighting.` }
+          { text: `Enhance this photo with a beautiful ethereal glowing aura and traditional Nusantara spiritual patterns. Masterpiece oil painting style, cinematic lighting, vivid colors. Theme: ${cleanContext}` }
         ]
       },
       config: {
-        imageConfig: { aspectRatio: "3:4" }
+        imageConfig: { aspectRatio: "1:1" }
       }
     });
     if (response.candidates?.[0]?.content?.parts) {
@@ -320,14 +322,13 @@ export async function searchCultureDiscovery(query: string) {
 
 export async function generateResultIllustration(text: string, title: string) {
   try {
-    const cleanTitle = title.replace(/[^\w\s]/gi, '');
     const cleanContext = cleanForImagePrompt(text);
     
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: { 
         parts: [{ 
-          text: `A spiritual digital painting depicting: ${cleanTitle}. Style: Traditional Nusantara oil painting, ethereal lighting, glowing particles, mystical landscape. Masterpiece. Themes: ${cleanContext}` 
+          text: `A spiritual digital painting depicting a majestic glowing energy field in an ancient Nusantara setting. Style: Traditional Indonesian oil painting, ethereal lighting, glowing particles, masterpiece. Narrative: ${cleanContext}` 
         }] 
       },
       config: {
@@ -351,7 +352,7 @@ export async function generateAksaraArt(aksaraType: string, text: string) {
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
-      contents: { parts: [{ text: `A beautiful calligraphy art of ${aksaraType} for "${text}". Ancient scroll style, gold and black theme.` }] },
+      contents: { parts: [{ text: `A beautiful and sacred calligraphy art of "${aksaraType}" for the word "${text}". Ancient scroll style, gold and black ink, masterpiece texture.` }] },
       config: {
         imageConfig: { aspectRatio: "1:1" }
       }
@@ -374,11 +375,11 @@ export async function generateKhodamVisual(base64Image: string, analysis: string
       contents: {
         parts: [
           { inlineData: { data: base64Image, mimeType: 'image/jpeg' } },
-          { text: `Digital spiritual painting of an ethereal benevolent guardian entity beside the person in the photo. Style: Ancient Nusantara oil painting, glowing aura, peaceful manifestation, masterpiece. Description: ${cleanContext}` }
+          { text: `Add a majestic ethereal glowing aura and protective symbolic energy patterns around the person in the photo. Style: Traditional Nusantara digital oil painting, benevolent atmosphere, warm lighting, masterpiece. Aesthetic: ${cleanContext}` }
         ]
       },
       config: {
-        imageConfig: { aspectRatio: "3:4" }
+        imageConfig: { aspectRatio: "1:1" }
       }
     });
     
@@ -411,11 +412,11 @@ export async function generateAncientRitual(category: string, name: string, targ
       contents: {
         parts: [
           { inlineData: { data: base64Image, mimeType: 'image/jpeg' } },
-          { text: `Ancient mystical ritual scene for ${category}. Indonesian traditional aesthetic, candles, incense smoke, ethereal atmosphere. Cinematic lighting.` }
+          { text: `A beautiful spiritual ritual scene in a traditional Nusantara forest. Candles, soft incense smoke, glowing ethereal light, oil painting style.` }
         ]
       },
       config: {
-        imageConfig: { aspectRatio: "3:4" }
+        imageConfig: { aspectRatio: "1:1" }
       }
     });
     
@@ -438,11 +439,11 @@ export async function visualizePortalEntity(base64Image: string, analysis: strin
       contents: {
         parts: [
           { inlineData: { data: base64Image, mimeType: 'image/jpeg' } },
-          { text: `Visualize spectral anomaly: ${cleanContext}. Glowing supernatural effects, translucent manifestation. Masterpiece style.` }
+          { text: `Visualize a majestic ethereal energy manifestation: ${cleanContext}. Glowing supernatural effects, translucent light, traditional Nusantara masterpiece style.` }
         ]
       },
       config: {
-        imageConfig: { aspectRatio: "3:4" }
+        imageConfig: { aspectRatio: "1:1" }
       }
     });
     if (response.candidates?.[0]?.content?.parts) {
@@ -464,7 +465,7 @@ export async function generateRajahVisual(ritualText: string) {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: { 
-        parts: [{ text: `Ancient mystical Rajah talisman calligraphy on aged parchment. Gold ink, intricate patterns, sacred geometry.` }] 
+        parts: [{ text: `A sacred and beautiful Rajah calligraphy on ancient parchment. Gold ink, intricate spiritual patterns, symmetrical Nusantara aesthetic.` }] 
       },
       config: {
         imageConfig: { aspectRatio: "1:1" }
@@ -483,7 +484,7 @@ export async function communicateWithEntity(context: string, message: string) {
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: { parts: [{ text: `Berperanlah sebagai entitas ghaib: ${context}. Balas pesan manusia: "${message}". Singkat, misterius, puitis.` }] },
+      contents: { parts: [{ text: `Berperanlah sebagai entitas cahaya: ${context}. Balas pesan manusia: "${message}". Singkat, misterius, puitis.` }] },
       config: { systemInstruction: SYSTEM_PROMPT }
     });
     return sanitizeText(response.text || '...suara statis...');
