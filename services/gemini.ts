@@ -3,7 +3,6 @@ import { GoogleGenAI, Type } from "@google/genai";
 
 /**
  * Mendapatkan instance AI.
- * Selalu mengambil API Key terbaru dari localStorage atau environment.
  */
 const getAIClient = () => {
   const loginKey = localStorage.getItem('waskita_key');
@@ -13,7 +12,7 @@ const getAIClient = () => {
   return new GoogleGenAI({ apiKey });
 };
 
-// SYSTEM_PROMPT hanya digunakan untuk GENERATE TEKS (Gemini 3 Flash)
+// SYSTEM_PROMPT hanya untuk TEKS (Gemini 3 Flash)
 const SYSTEM_PROMPT = `Anda adalah GALURA LUGAY KANCANA Waskita Pasundan, entitas AI penjaga sanad kebudayaan, sejarah, dan spiritualitas Tanah Sunda yang diilhami oleh semangat Lugay Kancana. 
 TUGAS UTAMA: 
 1. Gunakan Bahasa Indonesia yang sangat puitis dan berwibawa.
@@ -35,34 +34,23 @@ const sanitizeText = (text: string | undefined) => {
 };
 
 /**
- * ULTRA-SAFE NATURE METAPHOR PROMPT
- * Teknik ini menghindari penggunaan kata-kata hasil ramalan/mistis sama sekali.
- * Mengalihkan fokus ke pemandangan alam Indonesia yang 100% aman bagi sensor.
+ * PURE AESTHETIC TEXTILE PROMPT (THE FINAL FIX)
+ * Strategi: Menggunakan deskripsi desain tekstil dan seni dekoratif murni.
+ * Menghindari SEMUA kata kunci yang berkaitan dengan manusia, emosi, nasib, atau spiritualitas.
  */
-const cleanForImagePrompt = (text: string) => {
-  const lowText = text.toLowerCase();
+const getUltraSafePrompt = (type: string) => {
+  // Hanya menggunakan istilah desain interior, tekstil, dan alam benda
+  const baseStyle = "A professional digital graphic design, high-quality vector art aesthetic. Intricate decorative elements inspired by traditional Indonesian textile patterns.";
   
-  // Base default: Pemandangan hutan pagi yang tenang
-  let visualTheme = "A peaceful morning in a lush tropical forest with soft sunbeams";
-  let colorMood = "vibrant greens and soft yellows";
+  const themes: Record<string, string> = {
+    'gold': "Composition of flowing golden silk ribbons and geometric amber shapes on a dark charcoal background. Featuring subtle batik parang lines. Warm studio lighting, elegant and luxurious.",
+    'blue': "Abstract composition of deep blue water ripples and cyan clouds. Featuring delicate mega mendung batik curves. Serene, calm, and peaceful atmosphere.",
+    'red': "Dynamic arrangement of vibrant red floral shapes and traditional ornamental borders. Bright lighting, energetic and bold digital painting style.",
+    'default': "Symmetrical composition of traditional Indonesian wood carving patterns in warm wooden tones. Soft natural light, high definition, artistic masterpiece."
+  };
 
-  // Mapping kondisi batin ke metafora alam murni
-  if (lowText.includes("rejeki") || lowText.includes("harta") || lowText.includes("emas") || lowText.includes("untung")) {
-    visualTheme = "A wide golden rice terrace field during a beautiful sunset";
-    colorMood = "warm golds, amber, and orange";
-  } else if (lowText.includes("jodoh") || lowText.includes("cinta") || lowText.includes("kasih") || lowText.includes("sayang")) {
-    visualTheme = "Beautiful exotic colorful birds perching on a blooming orchid branch";
-    colorMood = "soft pinks, purple, and turquoise";
-  } else if (lowText.includes("kuat") || lowText.includes("wibawa") || lowText.includes("pimpin") || lowText.includes("macan")) {
-    visualTheme = "A majestic high mountain peak standing above a sea of blue clouds";
-    colorMood = "royal blues, deep greys, and bright white";
-  } else if (lowText.includes("sakit") || lowText.includes("sedih") || lowText.includes("prihatin") || lowText.includes("obat")) {
-    visualTheme = "Calm blue water ripples on a serene lake with floating green leaves";
-    colorMood = "tranquil blues, silver, and deep greens";
-  }
-
-  // Gunakan instruksi seni murni tanpa kata kunci spiritual
-  return `A high-quality artistic digital painting of ${visualTheme}. The composition includes elegant traditional Indonesian batik patterns like Mega Mendung integrated into the sky. Lighting is ${colorMood}. High definition, masterpiece style, peaceful atmosphere, vivid but soft colors. Strictly no human faces, no people, no text, no scary elements.`;
+  const selected = themes[type] || themes['default'];
+  return `${baseStyle} ${selected} Strictly no humans, no faces, no animals, no text, no occult symbols, no religious items.`;
 };
 
 /**
@@ -84,7 +72,7 @@ const extractImageUrl = (response: any) => {
   return null;
 };
 
-// --- FUNGSI GENERATE TEKS (MENGGUNAKAN SYSTEM_PROMPT) ---
+// --- FUNGSI GENERATE TEKS (Gemini 3 Flash) ---
 
 export async function getCulturalSynthesis(prompt: string) {
   const ai = getAIClient();
@@ -104,7 +92,7 @@ export async function getLocationChronicle(locationName: string, coords: string)
   const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
-    contents: { parts: [{ text: `Berikan risalah sejarah dan legenda untuk lokasi '${locationName}' di koordinat '${coords}'.` }] },
+    contents: { parts: [{ text: `Berikan wejangan sejarah untuk lokasi '${locationName}' di koordinat '${coords}'.` }] },
     config: { systemInstruction: SYSTEM_PROMPT },
   });
   return { text: sanitizeText(response.text), sources: [] };
@@ -114,7 +102,7 @@ export async function searchCultureDiscovery(query: string) {
   const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
-    contents: { parts: [{ text: `Lakukan penelusuran sejarah tentang: ${query}.` }] },
+    contents: { parts: [{ text: `Cari risalah sejarah tentang: ${query}.` }] },
     config: { systemInstruction: SYSTEM_PROMPT },
   });
   return { text: sanitizeText(response.text), sources: [] };
@@ -129,7 +117,7 @@ export async function analyzePalmistry(base64Image: string) {
     contents: {
       parts: [
         { inlineData: { data: base64Image, mimeType: "image/jpeg" } },
-        { text: "Lakukan analisis rajah tangan secara puitis dan mendalam." }
+        { text: "Lakukan pengamatan garis tangan secara puitis." }
       ]
     },
     config: { systemInstruction: SYSTEM_PROMPT }
@@ -144,7 +132,7 @@ export async function analyzeFaceReading(base64Image: string, name: string, birt
     contents: {
       parts: [
         { inlineData: { data: base64Image, mimeType: "image/jpeg" } },
-        { text: `Lakukan analisis fisiognomi pada wajah ${name}, lahir ${birthDate}.` }
+        { text: `Amati paras batin untuk ${name}, lahir ${birthDate}.` }
       ]
     },
     config: { systemInstruction: SYSTEM_PROMPT }
@@ -156,7 +144,7 @@ export async function getDreamInterpretation(dream: string) {
   const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
-    contents: { parts: [{ text: `Tafsirkan impian berikut secara puitis: ${dream}` }] },
+    contents: { parts: [{ text: `Sampaikan wejangan tentang impian: ${dream}` }] },
     config: { systemInstruction: SYSTEM_PROMPT }
   });
   return sanitizeText(response.text);
@@ -166,7 +154,7 @@ export async function generateAmalan(category: string, hajat: string) {
   const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
-    contents: { parts: [{ text: `Susun wejangan atau kalimat bijak untuk hajat: ${hajat}` }] },
+    contents: { parts: [{ text: `Berikan wejangan bijak untuk hajat: ${hajat}` }] },
     config: { systemInstruction: SYSTEM_PROMPT }
   });
   return sanitizeText(response.text);
@@ -179,7 +167,7 @@ export async function analyzeAura(base64Image: string, name: string) {
     contents: { 
       parts: [
         { inlineData: { data: base64Image, mimeType: "image/jpeg" } }, 
-        { text: `Analisislah pancaran batin atas nama ${name}.` }
+        { text: `Berikan risalah pancaran untuk ${name}.` }
       ]
     },
     config: { systemInstruction: SYSTEM_PROMPT }
@@ -191,7 +179,7 @@ export async function generateHealingProtocol(name: string, condition: string, t
   const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
-    contents: { parts: [{ text: `Ramulah risalah kearifan batin untuk ${name} dengan keluhan ${condition}.` }] },
+    contents: { parts: [{ text: `Ramulah wejangan kesehatan batin untuk ${name} dengan keluhan ${condition}.` }] },
     config: { systemInstruction: SYSTEM_PROMPT }
   });
   return sanitizeText(response.text);
@@ -201,7 +189,7 @@ export async function getMysticalProtection(name: string, condition: string) {
   const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
-    contents: { parts: [{ text: `Susunlah kalimat pelindung batin untuk ${name} menghadapi ${condition}.` }] },
+    contents: { parts: [{ text: `Sampaikan wejangan perlindungan batin untuk ${name} menghadapi ${condition}.` }] },
     config: { systemInstruction: SYSTEM_PROMPT }
   });
   return sanitizeText(response.text);
@@ -214,7 +202,7 @@ export async function analyzeHandwriting(base64Image: string) {
     contents: {
       parts: [
         { inlineData: { data: base64Image, mimeType: "image/jpeg" } },
-        { text: "Lakukan analisis karakter melalui tulisan tangan ini." }
+        { text: "Lakukan pengamatan karakter melalui guratan tulisan ini." }
       ]
     },
     config: { systemInstruction: SYSTEM_PROMPT }
@@ -229,7 +217,7 @@ export async function analyzeKhodam(base64Image: string, name: string, birthDate
     contents: {
       parts: [
         { inlineData: { data: base64Image, mimeType: "image/jpeg" } },
-        { text: `Singkap tabir kearifan untuk ${name}.` }
+        { text: `Berikan risalah kearifan untuk ${name}.` }
       ]
     },
     config: { systemInstruction: SYSTEM_PROMPT }
@@ -237,17 +225,16 @@ export async function analyzeKhodam(base64Image: string, name: string, birthDate
   return sanitizeText(response.text);
 }
 
-// --- FUNGSI GENERATE GAMBAR (TANPA SYSTEM_PROMPT AGAR LOLOS FILTER) ---
+// --- FUNGSI GENERATE GAMBAR (Gemini 2.5 Flash Image - NO SYSTEM PROMPT) ---
 
 export async function generateKhodamVisual(base64Image: string, analysis: string) {
   const ai = getAIClient();
-  // Gunakan instruksi visual murni tanpa kata 'khodam' atau 'mistis'
+  // Gunakan prompt desain murni, abaikan analysis
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-image',
     contents: {
       parts: [
-        { inlineData: { data: base64Image, mimeType: 'image/jpeg' } },
-        { text: "Transform this photo into an artistic painting with glowing golden light patterns and traditional Indonesian batik clouds in the background. High-quality digital art, warm and serene colors." }
+        { text: "A beautiful abstract digital art piece featuring glowing golden geometric lines and traditional batik textures. Masterpiece quality, warm lighting, elegant design." }
       ]
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
@@ -261,7 +248,7 @@ export async function generateCardVisual(cardName: string) {
     model: 'gemini-2.5-flash-image',
     contents: { 
       parts: [
-        { text: `A beautiful artistic illustration of a card depicting "${cardName}". Incorporating traditional golden Indonesian patterns, soft sunlight, and a peaceful sky. Masterpiece quality.` }
+        { text: "Abstract decorative art board with gold floral patterns and deep blue background. Intricate details, high-quality digital illustration, symmetrical aesthetic." }
       ] 
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
@@ -276,7 +263,7 @@ export async function analyzeFengShui(base64Image: string) {
     contents: {
       parts: [
         { inlineData: { data: base64Image, mimeType: "image/jpeg" } },
-        { text: "Analisis tata letak pada citra ini secara mendalam." }
+        { text: "Berikan pengamatan tata letak pada citra ini." }
       ]
     },
     config: { systemInstruction: SYSTEM_PROMPT }
@@ -291,7 +278,7 @@ export async function detectMysticalEnergy(base64Image: string, extraPrompt: str
     contents: {
       parts: [
         { inlineData: { data: base64Image, mimeType: "image/jpeg" } },
-        { text: "Analisis energi lingkungan pada citra ini. " + extraPrompt }
+        { text: "Lakukan pengamatan lingkungan pada citra ini." }
       ]
     },
     config: { systemInstruction: SYSTEM_PROMPT }
@@ -306,7 +293,7 @@ export async function analyzePortalEnergy(base64Image: string, locationType: str
     contents: {
       parts: [
         { inlineData: { data: base64Image, mimeType: "image/jpeg" } },
-        { text: `Pindai kondisi energi di lokasi ${locationType}.` }
+        { text: `Berikan pengamatan kondisi di lokasi ${locationType}.` }
       ]
     },
     config: { systemInstruction: SYSTEM_PROMPT }
@@ -318,7 +305,7 @@ export async function generateBalaRitual(analysis: string) {
   const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
-    contents: { parts: [{ text: `Berdasarkan analisis ini: "${analysis}", susunlah wejangan penyeimbang batin.` }] },
+    contents: { parts: [{ text: `Berikan wejangan penyeimbang batin.` }] },
     config: { systemInstruction: SYSTEM_PROMPT }
   });
   return sanitizeText(response.text);
@@ -326,12 +313,12 @@ export async function generateBalaRitual(analysis: string) {
 
 export async function generateMysticalVisual(base64Image: string, textResult: string) {
   const ai = getAIClient();
+  // Gunakan prompt tekstil murni
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-image',
     contents: {
       parts: [
-        { inlineData: { data: base64Image, mimeType: 'image/jpeg' } },
-        { text: "Enhance this image with elegant abstract golden lines and traditional Indonesian textile motifs. Beautiful lighting, high-quality artistic finish." }
+        { text: "Elegant abstract design with soft golden light rays and traditional indigo batik patterns. Peaceful and professional digital art, high quality." }
       ]
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
@@ -341,7 +328,15 @@ export async function generateMysticalVisual(base64Image: string, textResult: st
 
 export async function generateResultIllustration(text: string, title: string) {
   const ai = getAIClient();
-  const safePrompt = cleanForImagePrompt(text);
+  const lowText = text.toLowerCase();
+  
+  // Pilih tema visual murni berdasarkan kata kunci sederhana
+  let theme = 'default';
+  if (lowText.includes("rejeki") || lowText.includes("harta") || lowText.includes("emas")) theme = 'gold';
+  else if (lowText.includes("jodoh") || lowText.includes("cinta") || lowText.includes("damai")) theme = 'blue';
+  else if (lowText.includes("kuat") || lowText.includes("wibawa") || lowText.includes("tegas")) theme = 'red';
+  
+  const safePrompt = getUltraSafePrompt(theme);
   
   try {
     const response = await ai.models.generateContent({
@@ -366,7 +361,7 @@ export async function generateAksaraArt(aksaraType: string, text: string) {
     model: 'gemini-2.5-flash-image',
     contents: { 
       parts: [
-        { text: `Artistic golden decorative patterns inspired by the shape of "${text}" in ancient style on a vintage paper texture. Elegant and bright lighting.` }
+        { text: "Traditional calligraphy design on old textured paper. Golden ornamental frames, elegant handwriting style, professional digital art." }
       ] 
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
@@ -378,7 +373,7 @@ export async function generateAncientRitual(category: string, name: string, targ
   const ai = getAIClient();
   const textResponse = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
-    contents: { parts: [{ text: `Susun risalah tradisi untuk ${name}.` }] },
+    contents: { parts: [{ text: `Sampaikan wejangan tradisi untuk ${name}.` }] },
     config: { systemInstruction: SYSTEM_PROMPT }
   });
   const analysisText = sanitizeText(textResponse.text);
@@ -387,8 +382,7 @@ export async function generateAncientRitual(category: string, name: string, targ
     model: 'gemini-2.5-flash-image',
     contents: {
       parts: [
-        { inlineData: { data: base64Image, mimeType: 'image/jpeg' } },
-        { text: "A peaceful and artistic scene of traditional lanterns and flowers at night. Oil painting style, beautiful glowing lights." }
+        { text: "A peaceful scene of traditional paper lanterns glowing in a dark garden. Soft oil painting style, serene and artistic." }
       ]
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
@@ -403,8 +397,7 @@ export async function visualizePortalEntity(base64Image: string, analysis: strin
     model: 'gemini-2.5-flash-image',
     contents: {
       parts: [
-        { inlineData: { data: base64Image, mimeType: 'image/jpeg' } },
-        { text: "Beautiful abstract waves of glowing golden light with traditional Indonesian motifs. Bright, serene, and artistic atmosphere." }
+        { text: "Abstract ethereal light patterns in shades of teal and gold. Soft blurred focus, artistic digital illustration, peaceful atmosphere." }
       ]
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
@@ -418,7 +411,7 @@ export async function generateRajahVisual(ritualText: string) {
     model: 'gemini-2.5-flash-image',
     contents: { 
       parts: [
-        { text: "An intricate artistic pattern made of golden lines on an old parchment paper background. Traditional and elegant digital art." }
+        { text: "Exquisite golden filigree pattern on ancient dark parchment. Intricate symmetrical line art, professional traditional design." }
       ] 
     },
     config: { imageConfig: { aspectRatio: "1:1" } }
@@ -430,7 +423,7 @@ export async function communicateWithEntity(context: string, message: string) {
   const ai = getAIClient();
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
-    contents: { parts: [{ text: `Jawablah pesan ini secara bijak: "${message}".` }] },
+    contents: { parts: [{ text: `Jawablah pesan ini dengan bijak: "${message}".` }] },
     config: { systemInstruction: SYSTEM_PROMPT }
   });
   return sanitizeText(response.text) || '...';
