@@ -2,7 +2,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
 /**
- * Konfigurasi Keamanan Paling Longgar
+ * Konfigurasi Keamanan
  */
 const SAFETY_SETTINGS = [
   { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
@@ -58,11 +58,10 @@ const extractImageUrl = (response: any) => {
   return null;
 };
 
-// --- FUNGSI GENERATE TEKS ---
+// --- FUNGSI GENERATE TEKS (MENGGUNAKAN INSTANCE FRESH SETIAP KALI) ---
 
 export async function getCulturalSynthesis(prompt: string) {
-  // Selalu buat instance baru dengan API_KEY terbaru dari process.env
-  const ai = new GoogleGenAI({ apiKey: (window as any).process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: { parts: [{ text: prompt }] },
@@ -76,7 +75,7 @@ export async function getMantraContext(prompt: string) {
 }
 
 export async function getLocationChronicle(locationName: string, coords: string) {
-  const ai = new GoogleGenAI({ apiKey: (window as any).process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: { parts: [{ text: `Risalah sejarah lokasi '${locationName}' (${coords}).` }] },
@@ -86,7 +85,7 @@ export async function getLocationChronicle(locationName: string, coords: string)
 }
 
 export async function searchCultureDiscovery(query: string) {
-  const ai = new GoogleGenAI({ apiKey: (window as any).process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: { parts: [{ text: `Penelusuran sejarah: ${query}.` }] },
@@ -98,7 +97,7 @@ export async function searchCultureDiscovery(query: string) {
 // --- FUNGSI ANALISIS CITRA ---
 
 export async function analyzePalmistry(base64Image: string) {
-  const ai = new GoogleGenAI({ apiKey: (window as any).process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: {
@@ -113,7 +112,7 @@ export async function analyzePalmistry(base64Image: string) {
 }
 
 export async function analyzeFaceReading(base64Image: string, name: string, birthDate: string, motherName: string) {
-  const ai = new GoogleGenAI({ apiKey: (window as any).process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: {
@@ -128,7 +127,7 @@ export async function analyzeFaceReading(base64Image: string, name: string, birt
 }
 
 export async function getDreamInterpretation(dream: string) {
-  const ai = new GoogleGenAI({ apiKey: (window as any).process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: { parts: [{ text: `Tafsir mimpi: ${dream}` }] },
@@ -138,7 +137,7 @@ export async function getDreamInterpretation(dream: string) {
 }
 
 export async function generateAmalan(category: string, hajat: string) {
-  const ai = new GoogleGenAI({ apiKey: (window as any).process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: { parts: [{ text: `Wejangan bijak: ${hajat}` }] },
@@ -148,7 +147,7 @@ export async function generateAmalan(category: string, hajat: string) {
 }
 
 export async function analyzeAura(base64Image: string, name: string) {
-  const ai = new GoogleGenAI({ apiKey: (window as any).process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: { 
@@ -163,7 +162,7 @@ export async function analyzeAura(base64Image: string, name: string) {
 }
 
 export async function generateHealingProtocol(name: string, condition: string, type: string) {
-  const ai = new GoogleGenAI({ apiKey: (window as any).process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: { parts: [{ text: `Risalah kesehatan ${name}, keluhan ${condition}.` }] },
@@ -173,7 +172,7 @@ export async function generateHealingProtocol(name: string, condition: string, t
 }
 
 export async function getMysticalProtection(name: string, condition: string) {
-  const ai = new GoogleGenAI({ apiKey: (window as any).process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: { parts: [{ text: `Wejangan perlindungan ${name}.` }] },
@@ -183,7 +182,7 @@ export async function getMysticalProtection(name: string, condition: string) {
 }
 
 export async function analyzeHandwriting(base64Image: string) {
-  const ai = new GoogleGenAI({ apiKey: (window as any).process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: {
@@ -198,7 +197,7 @@ export async function analyzeHandwriting(base64Image: string) {
 }
 
 export async function analyzeKhodam(base64Image: string, name: string, birthDate: string, motherName: string) {
-  const ai = new GoogleGenAI({ apiKey: (window as any).process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: {
@@ -215,7 +214,7 @@ export async function analyzeKhodam(base64Image: string, name: string, birthDate
 // --- FUNGSI GENERATE GAMBAR ---
 
 export async function generateKhodamVisual(base64Image: string, analysis: string) {
-  const ai = new GoogleGenAI({ apiKey: (window as any).process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const prompt = getUltraSafeVisual(0);
   try {
     const response = await ai.models.generateContent({
@@ -225,12 +224,13 @@ export async function generateKhodamVisual(base64Image: string, analysis: string
     });
     return extractImageUrl(response);
   } catch (e: any) {
+    console.error("Image Gen Error:", e);
     throw e;
   }
 }
 
 export async function generateCardVisual(cardName: string) {
-  const ai = new GoogleGenAI({ apiKey: (window as any).process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const prompt = getUltraSafeVisual(2);
   try {
     const response = await ai.models.generateContent({
@@ -245,7 +245,7 @@ export async function generateCardVisual(cardName: string) {
 }
 
 export async function analyzeFengShui(base64Image: string) {
-  const ai = new GoogleGenAI({ apiKey: (window as any).process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: {
@@ -260,7 +260,7 @@ export async function analyzeFengShui(base64Image: string) {
 }
 
 export async function detectMysticalEnergy(base64Image: string, extraPrompt: string) {
-  const ai = new GoogleGenAI({ apiKey: (window as any).process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: {
@@ -275,7 +275,7 @@ export async function detectMysticalEnergy(base64Image: string, extraPrompt: str
 }
 
 export async function analyzePortalEnergy(base64Image: string, locationType: string, resonanceLevel: number) {
-  const ai = new GoogleGenAI({ apiKey: (window as any).process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: {
@@ -290,7 +290,7 @@ export async function analyzePortalEnergy(base64Image: string, locationType: str
 }
 
 export async function generateBalaRitual(analysis: string) {
-  const ai = new GoogleGenAI({ apiKey: (window as any).process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: { parts: [{ text: `Wejangan penyeimbang.` }] },
@@ -300,7 +300,7 @@ export async function generateBalaRitual(analysis: string) {
 }
 
 export async function generateMysticalVisual(base64Image: string, textResult: string) {
-  const ai = new GoogleGenAI({ apiKey: (window as any).process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const prompt = getUltraSafeVisual(1);
   try {
     const response = await ai.models.generateContent({
@@ -315,7 +315,7 @@ export async function generateMysticalVisual(base64Image: string, textResult: st
 }
 
 export async function generateResultIllustration(text: string, title: string) {
-  const ai = new GoogleGenAI({ apiKey: (window as any).process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const prompt = getUltraSafeVisual(Math.floor(Math.random() * 5));
   try {
     const response = await ai.models.generateContent({
@@ -324,16 +324,15 @@ export async function generateResultIllustration(text: string, title: string) {
       config: { imageConfig: { aspectRatio: "1:1" }, safetySettings: SAFETY_SETTINGS as any }
     });
     const url = extractImageUrl(response);
-    if (!url) throw new Error("API merespon tanpa data gambar (Empty Response).");
+    if (!url) throw new Error("API merespon tanpa data gambar.");
     return url;
   } catch (error: any) {
-    console.error("DEBUG ERROR IMAGE:", error);
     throw error;
   }
 }
 
 export async function generateAksaraArt(aksaraType: string, text: string) {
-  const ai = new GoogleGenAI({ apiKey: (window as any).process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const prompt = getUltraSafeVisual(4);
   try {
     const response = await ai.models.generateContent({
@@ -348,7 +347,7 @@ export async function generateAksaraArt(aksaraType: string, text: string) {
 }
 
 export async function generateAncientRitual(category: string, name: string, targetName: string, targetBirthDate: string, targetParent: string, notes: string, base64Image: string) {
-  const ai = new GoogleGenAI({ apiKey: (window as any).process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const textResponse = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: { parts: [{ text: `Wejangan tradisi untuk ${name}.` }] },
@@ -370,7 +369,7 @@ export async function generateAncientRitual(category: string, name: string, targ
 }
 
 export async function visualizePortalEntity(base64Image: string, analysis: string) {
-  const ai = new GoogleGenAI({ apiKey: (window as any).process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const prompt = getUltraSafeVisual(0);
   try {
     const response = await ai.models.generateContent({
@@ -385,7 +384,7 @@ export async function visualizePortalEntity(base64Image: string, analysis: strin
 }
 
 export async function generateRajahVisual(ritualText: string) {
-  const ai = new GoogleGenAI({ apiKey: (window as any).process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const prompt = getUltraSafeVisual(2);
   try {
     const response = await ai.models.generateContent({
@@ -400,7 +399,7 @@ export async function generateRajahVisual(ritualText: string) {
 }
 
 export async function communicateWithEntity(context: string, message: string) {
-  const ai = new GoogleGenAI({ apiKey: (window as any).process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: { parts: [{ text: `Jawab bijak: "${message}".` }] },

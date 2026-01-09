@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Sparkles, ChevronRight, Zap, User, Key, Info, Loader2, Lock } from 'lucide-react';
+import { Sparkles, ChevronRight, Zap, User, Key, Info, Loader2, Lock, ShieldCheck, ExternalLink } from 'lucide-react';
 
 interface SplashScreenProps {
   onEnter: (config: { userName: string }) => void;
@@ -11,28 +11,36 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onEnter }) => {
   const [showContent, setShowContent] = useState(false);
   const [isWelcoming, setIsWelcoming] = useState(false);
   const [userName, setUserName] = useState(localStorage.getItem('waskita_user') || '');
-  const [apiKey, setApiKey] = useState(localStorage.getItem('waskita_key') || '');
+  const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setShowContent(true), 500);
     return () => clearTimeout(timer);
   }, []);
 
-  const handleStart = (e: React.FormEvent) => {
+  const handleStart = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userName || !apiKey) return;
+    if (!userName.trim()) return;
 
-    const trimmedKey = apiKey.trim();
+    setIsSyncing(true);
+    
+    // Alur Seleksi Kunci Resmi (Sesuai Guidelines)
+    // Gunakan window.aistudio jika tersedia untuk memastikan kunci valid terpilih
+    if (window.aistudio) {
+      const hasKey = await window.aistudio.hasSelectedApiKey();
+      if (!hasKey) {
+        try {
+          await window.aistudio.openSelectKey();
+          // Asumsikan pemilihan sukses sesuai pedoman penanganan race condition
+        } catch (err) {
+          console.error("Gagal memilih kunci:", err);
+          setIsSyncing(false);
+          return;
+        }
+      }
+    }
+
     localStorage.setItem('waskita_user', userName.trim());
-    localStorage.setItem('waskita_key', trimmedKey);
-    
-    // Injeksi paksa ke process.env global agar dibaca oleh SDK
-    if (!(window as any).process) (window as any).process = { env: {} };
-    (window as any).process.env.API_KEY = trimmedKey;
-    
-    // Memanggil fungsi sinkronisasi dari index.html jika tersedia
-    if ((window as any).syncWaskitaKey) (window as any).syncWaskitaKey();
-    
     setIsWelcoming(true);
 
     setTimeout(() => {
@@ -82,43 +90,38 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onEnter }) => {
                 />
               </div>
 
-              <div className="space-y-2 text-left">
-                <label className="text-[9px] font-black text-stone-500 uppercase tracking-widest flex items-center gap-2 px-1">
-                  <Key size={12} className="text-blue-500" /> Waskita Key (API Key)
-                </label>
-                <div className="relative">
-                  <input 
-                    type="password" 
-                    required
-                    value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value)}
-                    placeholder="Suntikkan kode rahasia..."
-                    className="w-full bg-stone-950 border border-stone-800 rounded-2xl px-5 py-4 pr-12 text-sm text-white focus:border-blue-600 outline-none transition-all placeholder:text-stone-800 font-bold shadow-inner"
-                  />
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-700">
-                    <Lock size={16} />
-                  </div>
-                </div>
+              <div className="p-4 bg-blue-950/20 border border-blue-900/30 rounded-2xl flex gap-3 text-left">
+                 <ShieldCheck size={18} className="text-blue-500 shrink-0 mt-0.5" />
+                 <div className="space-y-1">
+                   <p className="text-[9px] font-black text-blue-300 uppercase tracking-widest leading-none">Keamanan Sanad</p>
+                   <p className="text-[8px] text-stone-500 leading-relaxed italic">
+                     Aplikasi ini sekarang menggunakan sistem manajemen kunci otomatis untuk menjamin resonansi batin yang stabil.
+                   </p>
+                 </div>
               </div>
 
               <button 
                 type="submit"
-                disabled={!userName || !apiKey}
+                disabled={!userName || isSyncing}
                 className="w-full group relative flex items-center justify-center pt-4 disabled:opacity-30"
               >
                 <div className="absolute inset-0 bg-blue-600 blur-2xl opacity-10 group-hover:opacity-30 transition-opacity rounded-full" />
                 <div className="relative w-full flex items-center justify-center gap-3 bg-stone-100 hover:bg-white text-stone-950 py-5 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all active:scale-95 shadow-xl">
-                  <Zap size={16} className="fill-blue-600 text-blue-600" />
-                  BUKA GERBANG WASKITA
+                  {isSyncing ? <Loader2 size={16} className="animate-spin text-blue-600" /> : <Zap size={16} className="fill-blue-600 text-blue-600" />}
+                  {isSyncing ? 'MENYELARASKAN...' : 'MASUK KE JAGAT WASKITA'}
                   <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
                 </div>
               </button>
 
-              <div className="pt-4 flex items-start gap-2 text-left opacity-40">
-                <Info size={12} className="shrink-0 mt-0.5 text-blue-400" />
-                <p className="text-[8px] text-stone-400 leading-relaxed italic">
-                  Kode rahasia (API Key) diperlukan untuk memanggil kecerdasan jagat raya. Data Anda aman dan tidak disimpan di server luar.
-                </p>
+              <div className="pt-2">
+                 <a 
+                   href="https://ai.google.dev/gemini-api/docs/billing" 
+                   target="_blank" 
+                   rel="noopener noreferrer"
+                   className="text-[8px] text-stone-600 hover:text-blue-400 transition-colors inline-flex items-center gap-1 uppercase font-bold tracking-widest"
+                 >
+                   Info Billing & Quota <ExternalLink size={10} />
+                 </a>
               </div>
             </form>
           </div>

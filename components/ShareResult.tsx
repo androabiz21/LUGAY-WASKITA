@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Share2, Copy, Image as ImageIcon, Download, Check, Loader2, Sparkles, X, AlertCircle, Bug, Terminal } from 'lucide-react';
+import { Share2, Copy, Image as ImageIcon, Download, Check, Loader2, Sparkles, X, AlertCircle, Bug, Terminal, Key } from 'lucide-react';
 import { generateResultIllustration } from '../services/gemini.ts';
 
 interface ShareResultProps {
@@ -27,6 +27,17 @@ const ShareResult: React.FC<ShareResultProps> = ({ title, text, context }) => {
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error("Gagal menyalin:", err);
+    }
+  };
+
+  const handleOpenKeyDialog = async () => {
+    if (window.aistudio) {
+      try {
+        await window.aistudio.openSelectKey();
+        setShowDebugModal(false);
+      } catch (e) {
+        console.error("Gagal membuka dialog kunci:", e);
+      }
     }
   };
 
@@ -113,13 +124,13 @@ const ShareResult: React.FC<ShareResultProps> = ({ title, text, context }) => {
                 </h3>
               </div>
 
-              <div className={`p-4 ${debugError.isQuota ? 'bg-amber-950/20 border-amber-900/30 text-amber-300' : 'bg-red-950/20 border-red-900/30 text-red-300'} border rounded-2xl flex gap-3 mb-4`}>
+              <div className={`p-4 ${debugError.isQuota ? 'bg-amber-950/20 border-amber-900/30 text-amber-300' : 'bg-red-950/20 border-red-900/30 text-red-300'} border rounded-2xl flex gap-3 mb-4 shadow-inner`}>
                 <AlertCircle size={18} className="shrink-0 mt-1" />
                 <div className="text-xs leading-relaxed">
                   {debugError.isQuota ? (
-                    <>Kunci Waskita yang Anda gunakan telah mencapai <strong>Batas Kuota (Error 429)</strong>. Mohon tunggu beberapa menit atau gunakan kunci lain yang memiliki limit lebih besar.</>
+                    <>Kunci Waskita Anda telah mencapai <strong>Batas Kuota (Error 429)</strong>. Hal ini umum terjadi pada kunci gratisan Google. Sila ganti kunci untuk melanjutkan.</>
                   ) : (
-                    <>Terjadi pemutusan resonansi pada model <strong>gemini-2.5-flash-image</strong>. Detail teknis di bawah diperlukan untuk diagnosa.</>
+                    <>Terjadi pemutusan resonansi pada model citra. Detail teknis di bawah diperlukan untuk diagnosa batin.</>
                   )}
                 </div>
               </div>
@@ -136,29 +147,22 @@ const ShareResult: React.FC<ShareResultProps> = ({ title, text, context }) => {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                 <p className="text-[10px] text-stone-500 italic">Analisa Kemungkinan:</p>
-                 <ul className="text-[9px] text-stone-400 space-y-1 list-disc pl-4">
-                   {debugError.isQuota ? (
-                     <>
-                        <li><strong>Free Tier Limit:</strong> Model Gemini memiliki batasan RPM (Requests Per Minute) yang ketat.</li>
-                        <li><strong>Shared Key:</strong> Pastikan kunci Anda tidak sedang digunakan oleh aplikasi lain secara bersamaan.</li>
-                     </>
-                   ) : (
-                     <>
-                        <li><strong>Safety Block:</strong> Model mendeteksi konten sensitif meski prompt sudah disederhanakan.</li>
-                        <li><strong>Invalid Key:</strong> Pastikan kunci yang Anda masukkan saat login adalah kunci API Google AI Studio yang valid.</li>
-                     </>
-                   )}
-                 </ul>
+              <div className="flex flex-col gap-3">
+                 {debugError.isQuota && (
+                   <button 
+                     onClick={handleOpenKeyDialog}
+                     className="w-full py-4 bg-amber-600 hover:bg-amber-500 text-black font-black rounded-xl transition-all uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 shadow-xl"
+                   >
+                     <Key size={14} /> GANTI KUNCI WASKITA
+                   </button>
+                 )}
+                 <button 
+                  onClick={() => setShowDebugModal(false)}
+                  className="w-full py-4 bg-stone-800 hover:bg-stone-700 text-white font-black rounded-xl transition-all uppercase tracking-widest text-[10px]"
+                >
+                  TUTUP DIAGNOSA
+                </button>
               </div>
-
-              <button 
-                onClick={() => setShowDebugModal(false)}
-                className="w-full py-4 bg-stone-800 hover:bg-stone-700 text-white font-black rounded-xl transition-all uppercase tracking-widest text-[10px]"
-              >
-                TUTUP DIAGNOSA
-              </button>
             </div>
           </div>
         </div>

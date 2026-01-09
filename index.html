@@ -10,18 +10,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script>
-        // Polyfill agresif untuk process.env
-        window.process = window.process || {};
-        window.process.env = window.process.env || {};
-        
-        // Fungsi untuk menyinkronkan kunci secara global
-        window.syncWaskitaKey = function() {
-            const key = localStorage.getItem('waskita_key') || "";
-            window.process.env.API_KEY = key;
-        };
-
-        // Jalankan saat pertama kali muat
-        window.syncWaskitaKey();
+        // Pastikan variabel global minimal tersedia untuk lingkungan browser
         window.global = window;
     </script>
     <style>
